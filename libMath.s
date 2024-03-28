@@ -1,4 +1,4 @@
-# File Name:   RSALib.s
+# File Name:   libMath.s
 # Programmers: Rohan Abraham,
 # Purpose:     Contains library of ARM assembly RSA functions
 
