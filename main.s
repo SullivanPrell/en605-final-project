@@ -28,7 +28,7 @@ main:
      LDR r0, [r0]
      LDR r1, =b
      LDR r1, [r1]
-     BL gcd
+     BL pow
 
      # print output
      MOV r1, r0
@@ -46,5 +46,5 @@ main:
      format:  .asciz "%d"
      a:       .word 0
      b:       .word 0
-     output:  .asciz "gcd(a,b) = %d\n"
+     output:  .asciz "pow(a,b) = %d\n"
 #END main

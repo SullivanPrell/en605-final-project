@@ -64,4 +64,31 @@ mod:
      ADD sp, sp, #4
      MOV pc, lr
 
+.global pow
+# Function: pow - base r0, exponent r1: r0^r1
+# Purpose:  Power calculation for an integer base r0 to the integer r1 exponent
+# Input:    r0 - integer base
+#           r1 - integer exponent
+# Output:   r0 - return: pow value
+pow:
+     # push stack
+     SUB sp, sp, #4
+     STR lr, [sp]
+     # fence post
+     MOV r2, r0     @ move base -> r2
+     SUB r1, r1, #1 @ r1--
+
+powLoop:
+     CMP r1, #0     @ Check if we're done
+     BEQ endPow     @ break
+     MUL r0, r2, r0 @ r0 * r2
+     SUB r1, r1, #1 @ r1--
+     B powLoop      @ cont.
+
+endPow:
+     # pop stack
+     LDR lr, [sp]
+     ADD sp, sp, #4
+     MOV pc, lr
+
 .data
