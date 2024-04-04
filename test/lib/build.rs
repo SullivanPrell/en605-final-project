@@ -16,7 +16,7 @@ fn main() {
     // let rsa_lib_asm = out_dir.join("rsaLib.o");
 
     // Tell cargo to link the static library `libMath`
-    println!("cargo:rustc-link-lib=static=Math");    // Specify the search directory for `libMath.a`
-    println!("cargo:rustc-link-search=native={}", out_dir.join("libMath.a").to_str().unwrap());
+    println!("cargo:rustc-link-lib=static=customMathLib");    // Specify the search directory for `libMath.a`
+    println!("cargo:rustc-link-search=native={}", env::current_dir().join("customMathLib.a").to_str().unwrap());
 
 }
