@@ -17,7 +17,7 @@ all: $(STATIC_LIB_OUTPUT) $(SHARED_LIB_OUTPUT) $(OUTPUT)
 
 # Link the final executable against the static library
 $(OUTPUT): main.o $(STATIC_LIB_OUTPUT)
-	$(CC) -g -o $@ main.o -Lbin -lcustomMathLib
+	$(CC) -g -o $@ main.o -lcustomMathLib
 
 # Create the static library
 $(STATIC_LIB_OUTPUT): libMath.o
