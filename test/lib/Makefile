@@ -28,13 +28,9 @@ $(SHARED_LIB_OUTPUT): libMath.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 # Compile the main object file
-main.o: main.s
+main.o: ../../main.s
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Compile the libMath object file
-libMath.o: libMath.s
+libMath.o: ../../libMath.s
 	$(CC) $(CFLAGS) -c -o $@ $<
-
-# Clean target for removing generated files
-clean:
-	rm -f bin/*.o bin/*.a bin/*.so $(OUTPUT)
