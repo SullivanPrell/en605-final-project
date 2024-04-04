@@ -176,4 +176,48 @@ isPrime:
      ADD sp, sp, #4
      MOV pc, lr
 
+.global totient
+# 
+# Function: Totient calculation Φ(n) = (p – 1) (q – 1) s.t. p & q are prime
+# Purpose:  Calculate and return totient
+# Input:    r0 - p
+#           r1 - q
+# Output:   r0 - return: totient value of (n)
+# Output:   r0 == -1 if p or q are NOT prime (error)
+totient:
+     # push stack
+     SUB sp, sp, #4
+     STR lr, [sp]
+
+     # store p in r3, q in r4
+     MOV r3, r0
+     MOV r4, r1
+     
+     # check prime - p
+     BL isPrime
+     CMP r0, #0
+     BLT errorNotPrime
+
+     # check prime - q
+     MOV r0, r4
+     BL isPrime
+     CMP r0, #0
+     BLT errorNotPrime
+
+     # PEMDAS - Parenthesis
+     SUB r3, r3, #1
+     SUB r4, r4, #1
+     # PEMDAS - Multiplication
+     MUL r0, r3, r4
+     B endTotient
+
+     errorNotPrime:
+          MOV r0, #-1
+          B endTotient
+     
+     endTotient:
+          # pop stack
+          LDR lr, [sp]
+          ADD sp, sp, #4
+          MOV pc, lr
 .data
