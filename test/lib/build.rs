@@ -19,6 +19,7 @@ fn main() {
 
     // Assemble the ARM assembly file into an object file
     let status = Command::new("make")
+        .arg(&"../..")
         .status()
         .unwrap();
 
