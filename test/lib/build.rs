@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 fn main() {
     let mut root_proj_dir = env::current_dir().unwrap();
+    let current_dir = env::current_dir().unwrap();
     root_proj_dir.pop();
     root_proj_dir.pop();
     let math_lib_asm = root_proj_dir.join("libMath.s");
@@ -17,6 +18,6 @@ fn main() {
 
     // Tell cargo to link the static library `libMath`
     println!("cargo:rustc-link-lib=static=customMathLib");    // Specify the search directory for `libMath.a`
-    println!("cargo:rustc-link-search=native={}", env::current_dir().join("customMathLib.a").to_str().unwrap());
+    println!("cargo:rustc-link-search=native={}", current_dir.join("customMathLib.a").to_str().unwrap());
 
 }
