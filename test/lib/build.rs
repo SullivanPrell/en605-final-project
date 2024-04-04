@@ -15,21 +15,8 @@ fn main() {
     let math_lib_object = out_dir.join("libMath.o");
     // let rsa_lib_asm = out_dir.join("rsaLib.o");
 
-
-    // Assemble the ARM assembly file into an object file
-    Command::new("as")
-        .args(&[math_lib_asm.to_str().unwrap(), "-o", math_lib_object.to_str().unwrap()])
-        .status()
-        .expect("Failed to assemble libMath.s");
-
-    // Tell cargo to tell rustc to link the assembled object file
-    println!("cargo:rustc-link-search=native={}", out_dir.to_str().unwrap());
-    println!("cargo:rustc-link-lib=static={}", math_lib_object.to_str().unwrap());
-    // println!("cargo:rustc-link-lib=static={}", rsa_lib_object.to_str().unwrap());
-
-
-    // Tell cargo to rerun this script if the assembly file changes
-    println!("cargo:rerun-if-changed=libMath.s");
-    // println!("cargo:rerun-if-changed=libRSA.s");
+    // Tell cargo to link the static library `libMath`
+    println!("cargo:rustc-link-lib=static=Math");    // Specify the search directory for `libMath.a`
+    println!("cargo:rustc-link-search=native={}", out_dir.join("libMath.a").to_str().unwrap());
 
 }
