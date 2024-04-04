@@ -1,6 +1,6 @@
 # File Name:   libMath.s
 # Programmers: Rohan Abraham, Sullivan Prellwitz, Tero Suontaka
-# Purpose:     Contains library of ARM assembly RSA functions
+# Purpose:     Library of general math functions
 
 .text
 
