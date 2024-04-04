@@ -8,13 +8,13 @@ fn main() {
     root_proj_dir.pop();
 
     let math_lib_asm = root_proj_dir.join("mathLib.s");
-    let rsa_lib_asm = root_proj_dir.join("rsaLib.s");
+    // let rsa_lib_asm = root_proj_dir.join("rsaLib.s");
 
 
     // Directory where the output object file will be saved
     let out_dir = root_proj_dir.join("/bin/");
     let math_lib_object = out_dir.join("mathLib.o");
-    let rsa_lib_asm = out_dir.join("rsaLib.o");
+    // let rsa_lib_asm = out_dir.join("rsaLib.o");
 
 
     // Assemble the ARM assembly file into an object file
@@ -28,8 +28,12 @@ fn main() {
 
     // Tell cargo to tell rustc to link the assembled object file
     println!("cargo:rustc-link-search=native={}", out_dir.to_str().unwrap());
-    println!("cargo:rustc-link-lib=static=function");
+    println!("cargo:rustc-link-lib=static={}", math_lib_object.to_str().unwrap());
+    // println!("cargo:rustc-link-lib=static={}", rsa_lib_object.to_str().unwrap());
+
 
     // Tell cargo to rerun this script if the assembly file changes
-    println!("cargo:rerun-if-changed=function.s");
+    println!("cargo:rerun-if-changed=libMath.s");
+    // println!("cargo:rerun-if-changed=libRSA.s");
+
 }
