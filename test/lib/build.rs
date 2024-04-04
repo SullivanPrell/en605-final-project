@@ -17,14 +17,10 @@ fn main() {
 
 
     // Assemble the ARM assembly file into an object file
-    let status = Command::new("make")
-        .arg(&"../..")
+    Command::new("as")
+        .args(&[math_lib_asm.to_str().unwrap(), "-o", math_lib_object.to_str().unwrap()])
         .status()
-        .unwrap();
-
-    if !status.success() {
-        panic!("Failed to assemble ARM assembly file");
-    }
+        .expect("Failed to assemble libMath.s");
 
     // Tell cargo to tell rustc to link the assembled object file
     println!("cargo:rustc-link-search=native={}", out_dir.to_str().unwrap());
