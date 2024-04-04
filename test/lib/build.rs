@@ -7,13 +7,13 @@ fn main() {
     root_proj_dir.pop();
     root_proj_dir.pop();
 
-    let math_lib_asm = root_proj_dir.join("mathLib.s");
+    let math_lib_asm = root_proj_dir.join("libMath.s");
     // let rsa_lib_asm = root_proj_dir.join("rsaLib.s");
 
 
     // Directory where the output object file will be saved
     let out_dir = root_proj_dir.join("/bin/");
-    let math_lib_object = out_dir.join("mathLib.o");
+    let math_lib_object = out_dir.join("libMath.o");
     // let rsa_lib_asm = out_dir.join("rsaLib.o");
 
 
