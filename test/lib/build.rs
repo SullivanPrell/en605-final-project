@@ -27,13 +27,13 @@ fn main() {
     }
 
     // Tell cargo to tell rustc to link the assembled object file
-   // println!("cargo:rustc-link-search=native={}", out_dir.to_str().unwrap());
-  //  println!("cargo:rustc-link-lib=static={}", math_lib_object.to_str().unwrap());
+    println!("cargo:rustc-link-search=native={}", out_dir.to_str().unwrap());
+    println!("cargo:rustc-link-lib=static={}", math_lib_object.to_str().unwrap());
     // println!("cargo:rustc-link-lib=static={}", rsa_lib_object.to_str().unwrap());
 
 
     // Tell cargo to rerun this script if the assembly file changes
-  //  println!("cargo:rerun-if-changed=libMath.s");
+    println!("cargo:rerun-if-changed=libMath.s");
     // println!("cargo:rerun-if-changed=libRSA.s");
 
 }
