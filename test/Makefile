@@ -16,7 +16,7 @@ SHARED_LIB_OUTPUT=libMath.so
 all: $(STATIC_LIB_OUTPUT) $(SHARED_LIB_OUTPUT) $(OUTPUT)
 
 # Link the final executable against the static library
-$(OUTPUT): main.o $(STATIC_LIB_OUTPUT)
+$(OUTPUT): totientTest.o $(STATIC_LIB_OUTPUT)
 	$(CC) -g -o $@ $^
 
 # Create the static library
@@ -28,9 +28,21 @@ $(SHARED_LIB_OUTPUT): libMath.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 # Compile the main object file
-main.o: ../../main.s
-	$(CC) $(CFLAGS) -c -o $@ $<
+totientTest.o: totientTest.s
+	$(CC) $(CFLAGS) -g -c -o $@ $<
+
+# Compile the main object file
+main.o: ../main.s
+	$(CC) $(CFLAGS) -g -c -o $@ $<
 
 # Compile the libMath object file
-libMath.o: ../../libMath.s
-	$(CC) $(CFLAGS) -c -o $@ $<
+libMath.o: ../libMath.s
+	$(CC) $(CFLAGS) -g -c -o $@ $<
+
+clean: 
+	rm *.o *.so *.a rsa
+	rm -rf target
+
+test:
+	make
+	cargo test

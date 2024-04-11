@@ -190,29 +190,39 @@ totient:
      STR lr, [sp]
 
      # store p in r3, q in r4
-     MOV r3, r0
-     MOV r4, r1
+     LDR r2, =p
+     LDR r3, =q
+     STR r0, [r2]
+     STR r1, [r3]
      
      # check prime - p
+     LDR r0, =p
+     LDR r0, [r0]
      BL isPrime
-     CMP r0, #0
+     CMP r0, #1
      BLT errorNotPrime
 
      # check prime - q
-     MOV r0, r4
+     LDR r0, =q
+     LDR r0, [r0]
      BL isPrime
-     CMP r0, #0
+     CMP r0, #1
      BLT errorNotPrime
 
      # PEMDAS - Parenthesis
-     SUB r3, r3, #1
-     SUB r4, r4, #1
+     LDR r1, =p
+     LDR r2, =q
+     LDR r1, [r1]
+     LDR r2, [r2]
+     SUB r1, r1, #1
+     SUB r2, r2, #1
      # PEMDAS - Multiplication
-     MUL r0, r3, r4
+     MUL r0, r1, r2
      B endTotient
 
      errorNotPrime:
-          MOV r0, #-1
+          MVN r0, #1
+          ADD r0, #1
           B endTotient
      
      endTotient:
@@ -221,3 +231,5 @@ totient:
           ADD sp, sp, #4
           MOV pc, lr
 .data
+     p: .word 0
+     q: .word 0
