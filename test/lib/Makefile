@@ -9,15 +9,15 @@ LDFLAGS=-shared
 
 # Specify the output names
 OUTPUT=rsa
-STATIC_LIB_OUTPUT=customMathLib.a
-SHARED_LIB_OUTPUT=libcustomMathLib.so
+STATIC_LIB_OUTPUT=libMath.a
+SHARED_LIB_OUTPUT=libMath.so
 
 # Default target builds both static and shared libraries and the main executable
 all: $(STATIC_LIB_OUTPUT) $(SHARED_LIB_OUTPUT) $(OUTPUT)
 
 # Link the final executable against the static library
 $(OUTPUT): main.o $(STATIC_LIB_OUTPUT)
-	$(CC) -g -o $@ main.o -lcustomMathLib
+	$(CC) -g -o $@ $^
 
 # Create the static library
 $(STATIC_LIB_OUTPUT): libMath.o
