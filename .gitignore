@@ -1,6 +1,8 @@
 bin/*
 bin
 *.o
+*.a
+*.so
 # ignore mac finder files
 .DS_STORE
 
