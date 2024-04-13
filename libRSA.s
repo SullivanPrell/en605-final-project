@@ -86,130 +86,137 @@ cprivexp:
 .data
 # END cprivexp
 
-.global encrypt
-# Function: encrypt 
-# Purpose:  Encrypts a ASCII character string message using RSA
-#           encryption laid out in this library.
-# 					The idea below is to follow the formula in assignment description:
-#						c = m^e mod n, where:
-#							c: cipher text
-# 						m: individual plaintext character
-# 						e: public key exponent
-#								- positive integer, and 1 < e < phi(n), and co-prime to phi(n)
-# 						n: calculated modulus for public and private keys (n = p * q)
-# Input:    r0 - address of input message (&m[0])
-#						r1 - e public key exponent
-#						r2 - n calculated modulus
-# 					r3 - address of output message
-#
-# Output:   encrypted output message in address specified by r3
-#
+.global process
+# Function: process 
+# Purpose:  Processes the input for RSA encryption and decryption
+#           For encryption, use private key as exponent
+#           For decryption, use public key as exponent
+# Input:    r0 - integer base a
+#           r1 - integer exponent b
+#           r2 - integer modulus n
+# Output:   r0 - integer a^b mod n
 .text
-encrypt:
-	# 
-	# Push stack
-	SUB sp, sp, #36
-	STR lr, [sp]
- 	STR r4, [sp, #4]
- 	STR r5, [sp, #8]
- 	STR r6, [sp, #12]
- 	STR r7, [sp, #16]
- 	STR r8, [sp, #20]
- 	STR r9,	[sp, #24]
- 	STR r10,[sp, #28]
- 	STR r11,[sp, #32]
+process:
+     # push stack
+     SUB sp, sp, #20
+     STR lr, [sp, #0]
+     STR r4, [sp, #4]
+     STR r5, [sp, #8]
+     STR r6, [sp, #12]
+     STR r7, [sp, #16]
 
-	# Store inputs
-	# Msg
-	MOV r4, r0
-	# e exponent
-	MOV r5, r1
-	# n modulus
-	MOV r6, r2
-	# Output message address
-	MOV r9, r3
+     # register dictionary
+     # r4 - base
+     # r5 - exponent
+     # r6 - modulus
+     # r7 - loop counter
+     MOV r4, r0
+     MOV r5, r1
+     MOV r6, r2
+     MOV r7, #0
 
-	# Loop index
-	MOV r7, #0
-	# Null character
-	MOV r8, #0
-	# Space character
-	MOV r11, #32
+     # start at exponent of 0
+     MOV r0, #1
 
-	#
-	# Loop input message
-	#
-	msgStart:
-		# Load a byte from message to r10
-		LDRB r10, [r4, r7]
+     # all calculations are done in a word
+     # even small powers result in numbers larger than can be stored in a word
+     # to save memory, mod is applied at every step of exponentiation
 
-		# Check if end of string
-		CMP r10, r8
-		BEQ msgEnd
-	
-		# Check if a space character 0x20
-		CMP r10, r11
-		LDREQ r0, =str64
-		STREQ r11, [r9]
-		ADDEQ r9, r9, #1
-		BEQ outMsgEnd
+     processLoop:
+         # exit if counter >= exponent
+         CMP r7, r5
+         BGE processLoopEnd
+         
+         # multiply then mod
+         MUL r0, r0, r4
+         MOV r1, r6
+         BL mod
 
-		# Compute m^e and output to r0
-		MOV r0, r10
-		MOV r1, r5
-		BL pow
+         # increment and loop
+         ADD r7, r7, #1
+         B processLoop
 
-		# Compute m^e mod n and output to r0
-		MOV r1, r6
-		BL mod
+     processLoopEnd:
 
-		# Convert r0 int to string in str64
-		MOV r2, r0
-		LDR r0, =str64
-		LDR r1, =intStrFormat
-		BL sprintf
-	
-		#
-		# Loop output message
-		#
-		# Output message loop index
-		MOV r3, #0
-		outMsgStart:
-			# Output message base address
-			LDR r0, =str64
-			LDRB r0, [r0, r3]
-
-			# Check EOS
-			CMP r0, r8
-			BEQ outMsgEnd
-
-			# Copy over bytes
-			STRB r0, [r9]
-			ADD r3, r3, #1
-			ADD r9, r9, #1
-			B outMsgStart
-		outMsgEnd:
-	
-		# Loop back to msg read start
-		ADD r7, r7, #1
-		B msgStart
-	msgEnd:
-
-	# Pop stack
-	LDR lr, [sp]
- 	LDR r4, [sp, #4]
- 	LDR r5, [sp, #8]
- 	LDR r6, [sp, #12]
- 	LDR r7, [sp, #16]
- 	LDR r8, [sp, #20]
- 	LDR r9, [sp, #24]
- 	LDR r10,[sp, #28]
- 	LDR r11,[sp, #32]
-	ADD sp, sp, #36
-	MOV pc, lr
+     # pop stack
+     LDR lr, [sp, #0]
+     LDR r4, [sp, #4]
+     LDR r5, [sp, #8]
+     LDR r6, [sp, #12]
+     LDR r7, [sp, #16]
+     ADD sp, sp, #20
+     MOV pc, lr
 
 .data
-	str64: 				.space 64
-	intStrFormat: .asciz "%d"
-# END encrypt 
+# END process
+
+.global processArray
+# Function: processArray
+# Purpose:  Processes an integer array for RSA encryption and decryption
+#           Applies a^b mod n for all a in array
+# Input:    r0 - pointer to integer array
+#           r1 - size of array
+#           r2 - integer exponent b
+#           r3 - integer modulus n
+# Output:   r0 - pointer to processed integer array
+#           r1 - size of array
+.text
+processArray:
+     # push stack
+     SUB sp, sp, #24
+     STR lr, [sp, #0]
+     STR r4, [sp, #4]
+     STR r5, [sp, #8]
+     STR r6, [sp, #12]
+     STR r7, [sp, #16]
+     STR r8, [sp, #20]
+
+     # register dictionary
+     # r4 - pointer to array
+     # r5 - size of array
+     # r6 - exponent
+     # r7 - modulus
+     # r8 - loop counter
+     MOV r4, r0
+     MOV r5, r1
+     MOV r6, r2
+     MOV r7, r3
+     MOV r8, #0
+
+     processArrayLoop:
+         # exit if counter >= array size
+         CMP r8, r5
+         BGE processArrayLoopEnd
+
+         # process data in current word
+         LSL r1, r8, #2
+         LDR r0, [r4, r1]
+         MOV r1, r6
+         MOV r2, r7
+         BL process
+
+         # store processed data in current word
+         LSL r1, r8, #2
+         STR r0, [r4, r1]
+
+         # increment and loop
+         ADD r8, r8, #1
+         B processArrayLoop
+
+     processArrayLoopEnd:
+
+     MOV r0, r4
+     MOV r1, r5
+
+     # pop stack
+     LDR lr, [sp, #0]
+     LDR r4, [sp, #4]
+     LDR r5, [sp, #8]
+     LDR r6, [sp, #12]
+     LDR r7, [sp, #16]
+     LDR r8, [sp, #20]
+     ADD sp, sp, #24
+     MOV pc, lr
+
+.data
 
