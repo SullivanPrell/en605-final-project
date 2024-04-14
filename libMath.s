@@ -184,36 +184,28 @@ isPrime:
 #           r1 - q
 # Output:   r0 - return: totient value of (n)
 # Output:   r0 == -1 if p or q are NOT prime (error)
+#
 totient:
-     # push stack
-     SUB sp, sp, #4
-     STR lr, [sp]
+     PUSH {r4, r5, lr}
 
-     # store p in r3, q in r4
-     LDR r2, =p
-     LDR r3, =q
-     STR r0, [r2]
-     STR r1, [r3]
+     MOV r4, r0
+     MOV r5, r1
      
      # check prime - p
-     LDR r0, =p
-     LDR r0, [r0]
+     MOV r0, r4
      BL isPrime
      CMP r0, #1
      BLT errorNotPrime
 
      # check prime - q
-     LDR r0, =q
-     LDR r0, [r0]
+     MOV r0, r5
      BL isPrime
      CMP r0, #1
      BLT errorNotPrime
 
      # PEMDAS - Parenthesis
-     LDR r1, =p
-     LDR r2, =q
-     LDR r1, [r1]
-     LDR r2, [r2]
+     MOV r1, r4
+     MOV r2, r5
      SUB r1, r1, #1
      SUB r2, r2, #1
      # PEMDAS - Multiplication
@@ -226,10 +218,20 @@ totient:
           B endTotient
      
      endTotient:
-          # pop stack
-          LDR lr, [sp]
-          ADD sp, sp, #4
-          MOV pc, lr
+    POP {r4, r5, pc}
+
+.global pqMod
+# 
+# Function: pqMod
+# Purpose:  Specific mod calculation for p & q == ( p * q )
+# Input:    r0 - p
+#           r1 - q
+# Output:   r0 - return: mod(p,q)
+#
+pqMod:
+     PUSH {lr}
+     MUL r2, r0, r1
+     MOV r0, r2
+     POP {pc}
+
 .data
-     p: .word 0
-     q: .word 0

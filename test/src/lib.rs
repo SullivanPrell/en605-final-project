@@ -15,6 +15,18 @@ mod tests {
     */
 
     #[test]
+    fn pq_mod_expect_correct() {
+        unsafe {
+            let lib_math = Library::new("./libMath.so").unwrap();
+            let pq_mod = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pqMod").unwrap();
+            let result = pq_mod(2, 2);
+            assert_eq!(result, 4);
+            let result1 = pq_mod(22, 3);
+            assert_eq!(result1, 66);
+        }
+    }
+
+    #[test]
     fn gcd_expect_true() {
         unsafe { // this is marked unsafe since we are calling functions external to rust
             let lib_math = Library::new("./libMath.so").unwrap(); // Get the library
