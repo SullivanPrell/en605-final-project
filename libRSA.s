@@ -86,6 +86,61 @@ cprivexp:
 .data
 # END cprivexp
 
+.global cpubexp
+#
+# Function: cpubexp
+# Purpose:  Validates the public exponent s.t. 1 < e < Φ(n) and e is co-prime to Φ(n) [ gcd(e, Φ(n)) = 1 ]
+# Input: r0 = p, r1 = q, r2 = e
+# Output: r0 = pub exponent
+# Output: r0 = -1 error
+#
+.text
+cpubexp:
+    PUSH {r4, r5, r6, lr}
+
+    MOV r4, r0 // p & n after totient calc
+    MOV r5, r1 // q
+    MOV r6, r2 // e
+
+    MOV r0, r2
+    CMP r0, #1
+    BLT pubError
+
+    # Calc totient and store in r4, error if p or q aren't prime
+    MOV r0, r4
+    MOV r1, r5
+    BL totient
+    CMP r0, #-1
+    BEQ pubError
+    MOV r4, r0
+
+    # Check if e is less than totient of n
+    CMP r6, r4
+    BGT pubError
+
+    # Load exp and totient and check gcd, error if not 1
+    MOV r0, r6
+    MOV r1, r4
+    BL gcd
+    CMP r0, #1
+    BEQ pubValid
+    B pubError
+
+    pubError:
+        MOV r0, #-1
+        B end
+
+    pubValid:
+        MOV r0, r6
+        B end
+
+    end:
+    # pop stack
+    POP {r4, r5, r6, pc}
+
+.data
+# END cpubexp
+
 .global process
 # Function: process 
 # Purpose:  Processes the input for RSA encryption and decryption
@@ -219,4 +274,3 @@ processArray:
      MOV pc, lr
 
 .data
-

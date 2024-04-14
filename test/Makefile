@@ -6,17 +6,25 @@ CFLAGS=-g -fPIC
 LDFLAGS=-shared
 
 # Set shared library name
-SHARED_LIB_OUTPUT=libMath.so
+SHARED_LIB_RSA=libRSA.so
 
 # Default builds the shared library
-all: $(SHARED_LIB_OUTPUT)
+all: $(SHARED_LIB_RSA)
 
 # Create shared library
-$(SHARED_LIB_OUTPUT): libMath.o
+$(SHARED_LIB_RSA): libMath.o libRSA.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+# Create shared library
+$(SHARED_LIB_OUTPUT_RSA): libRSA.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 # Compile libMath object file
 libMath.o: ../libMath.s
+	$(CC) $(CFLAGS) -g -c -o $@ $<
+
+# Compile libRSA object file
+libRSA.o: ../libRSA.s
 	$(CC) $(CFLAGS) -g -c -o $@ $<
 
 # Remove artifacts from building asm and rust
