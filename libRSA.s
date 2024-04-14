@@ -90,43 +90,36 @@ cprivexp:
 #
 # Function: cpubexp
 # Purpose:  Validates the public exponent s.t. 1 < e < Φ(n) and e is co-prime to Φ(n) [ gcd(e, Φ(n)) = 1 ]
-# Input: r0 = p, r1 = q
-# Input: =pubExponent user input
+# Input: r0 = p, r1 = q, r2 = e
 # Output: r0 = pub exponent
 # Output: r0 = -1 error
 #
 .text
 cpubexp:
-    PUSH {r4, lr}
+    PUSH {r4, r5, r6, lr}
 
-    # Prompt for exponent e
-    LDR r0, =pubPrompt
-    BL printf
+    MOV r4, r0 // p & n after totient calc
+    MOV r5, r1 // q
+    MOV r6, r2 // e
 
-    # Save exponent e
-    LDR r0, =intFmt
-    LDR r1, =pubExponent
-    BL scanf
-
-    # Load e, check if e > 1, if not error
-    LDR r0, =pubExponent
-    LDR r0, [r0]
+    MOV r0, r2
     CMP r0, #1
     BLT pubError
 
     # Calc totient and store in r4, error if p or q aren't prime
+    MOV r0, r4
+    MOV r1, r5
     BL totient
     CMP r0, #-1
     BEQ pubError
     MOV r4, r0
 
     # Check if e is less than totient of n
-    CMP r0, r4
+    CMP r6, r4
     BGT pubError
 
     # Load exp and totient and check gcd, error if not 1
-    LDR r0, =pubExponent
-    LDR r0, [r0]
+    MOV r0, r6
     MOV r1, r4
     BL gcd
     CMP r0, #1
@@ -138,17 +131,13 @@ cpubexp:
         B end
 
     pubValid:
-        LDR r0, =pubExponent
-        LDR r0, [r0]
+        MOV r0, r6
         B end
 
     end:
     # pop stack
-    POP {r4, pc}
+    POP {r4, r5, r6, pc}
 
 .data
-    pubPrompt: .asciz "\nPlease enter an exponent e such that\n1. e > 0\n2. 1 < e < Φ(n)\n3. e is co-prime to Φ(n) [ gcd(e, Φ(n)) = 1 ]\nEnter exponent here: "
-    intFmt: .asciz "%d"
-    pubExponent .word 0
 # END cpubexp
 
