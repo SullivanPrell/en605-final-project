@@ -115,6 +115,17 @@ mod tests {
             assert_eq!(result , 557);
         }
     }
-    
+
+    #[test]
+    fn cprivexp_expect_valid() {
+        unsafe {
+            let lib_rsa = Library::new("./libRSA.so").unwrap();
+            let cpubexp = lib_rsa.get::<Symbol<extern "C" fn(i32, i32, i32) -> i32>>(b"cpubexp").unwrap();
+            let cprivexp = lib_rsa.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"cprivexp").unwrap();
+            let result = cprivexp(cpubexp(41, 43, 557), 2); 
+            assert!(result != -1, "private exponent is incorrect got {}", result);
+        }
+    }
+
     /* libRSA tests END */
 }
