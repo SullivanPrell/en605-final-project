@@ -1,4 +1,7 @@
 use libloading::{Library, Symbol};
+use std::ffi::CStr;
+use std::ffi::CString;
+use std::os::raw::c_char;
 
 #[cfg(test)]
 mod tests {
@@ -128,4 +131,43 @@ mod tests {
     }
 
     /* libRSA tests END */
+
+    /* libIO test START */
+    #[test]
+    fn array_to_string_expect_true() {
+        unsafe {
+            let lib_rsa = Library::new("./libRSA.so").unwrap();
+            // the function takes a pointer to an array of ints (32 bit) and the length of the array
+            // in rust this means we pass a pointer to a slice of integers (i32) and the length 
+            // the return is more tricky, we get back a C style string which is a pointer to a null terminated char array
+            // so we take a couple steps to turn this into a rust string for ease of testing
+            let array_to_string = lib_rsa.get::<Symbol<extern "C" fn(&[i32], i32) -> *const c_char>>(b"arrayToString").unwrap();
+    
+            let test_array: [i32; 14] = [65, 110, 111, 116, 104, 101, 114, 32, 115, 116, 114, 105, 110, 103];
+            let char_array_ptr = array_to_string(&test_array, 14);
+    
+            // Convert C string to Rust String
+            let c_string = CStr::from_ptr(char_array_ptr);
+            let result = c_string.to_string_lossy().into_owned();
+    
+            assert_eq!(result, "Another string");
+        }
+    }
+
+    // TODO: need to fix this its broken
+    // #[test]
+    // fn string_to_array_expect_true() {
+    //     unsafe {
+    //         let lib_rsa = Library::new("./libRSA.so").unwrap();
+    //         let string_to_array = lib_rsa.get::<Symbol<extern "C" fn(*const c_char) -> ([i32], i32)>>(b"stringToArray").unwrap();
+    
+    //         let c_string = CString::new("Another string").expect("CString::new failed");
+    //         let char_ptr: *const c_char = c_string.as_ptr();
+    
+    //         let result = string_to_array(char_ptr);
+    //         let test_array: [i32; 14] = [65, 110, 111, 116, 104, 101, 114, 32, 115, 116, 114, 105, 110, 103];
+    //         assert_eq!(result.0, test_array);
+    //     }
+    // }
+    /* libIO test END */
 }
