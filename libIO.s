@@ -138,3 +138,55 @@ arrayToString:
 
 .data
 # END arrayToString
+
+.global readFileIO
+#
+# Function: readFileIO
+# Purpose:  Parses a user supplied file to a string
+# Input:    r0 - name of file to read w/out path (file must be in the same location as executable)
+# Output:   r0 - pointer to string
+#
+.bss
+    fileBuffer: 
+        .space 100
+readFileIO:
+    PUSH {r4, lr}
+
+    // Open file (C function fopen) save pointer to file in r4
+    LDR r1, =fileOpModeRead
+    BL fopen
+    MOV r4, r0 
+
+    // Check for null file
+    CMP r4, #0
+    BEQ errNullFile
+
+    // Parse file (C function fscanf)
+    LDR r0, [r4]
+    LDR r1, =readFileFmt
+    ADD r2, pc, #fileBuffer
+    BL fscanf
+
+    // Close file
+    MOV r0, r4
+    BL fclose
+
+    LDR r0, =readFileFmt
+    LDR r1, =fileBuffer
+    BL printf
+    B exitReadFile
+
+    errReadNullFile:
+        LDR r0, errReadNullFileMsg
+        BL printf
+        B exitReadFile
+    
+    
+    exitReadFile:
+    POP {r4, pc}
+
+.data
+    fileOpModeRead: .asciz "r"
+    errReadNullFileMsg: .asciz "\nERROR: NULL FILE\n"
+    readFileFmt: .asciz "%s"
+# END readFileIO

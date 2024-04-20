@@ -1,38 +1,21 @@
 .text
 .global main
+.bss
+     file: 
+          .space 100
 main:
      # push the stack
      SUB sp, sp, #4
      STR lr, [sp]
 
-     # prompt for first integer
-     LDR r0, =prompt1
-     BL printf
+     LDR r0, =filename
+     BL readFileIO
 
-     # scan for input
-     LDR r0, =format
-     LDR r1, =a
-     BL scanf
+     LDR r1, =file
+     STRB r0, [r1]
 
-     # prompt for second integer
-     LDR r0, =prompt2
-     BL printf
-
-     # scan for input
-     LDR r0, =format
-     LDR r1, =b
-     BL scanf
-
-     # compute gcd
-     LDR r0, =a
-     LDR r0, [r0]
-     LDR r1, =b
-     LDR r1, [r1]
-     BL pow
-
-     # print output
-     MOV r1, r0
-     LDR r0, =output
+     LDR r0, =printFmt
+     LDR r1, =file
      BL printf
 
      # pop the stack
@@ -41,10 +24,7 @@ main:
      MOV pc, lr
 
 .data
-     prompt1: .asciz "Enter first integer a: "
-     prompt2: .asciz "Enter second integer b: "
-     format:  .asciz "%d"
-     a:       .word 0
-     b:       .word 0
-     output:  .asciz "pow(a,b) = %d\n"
-#END main
+     filename: .asciz "fileread.txt"
+     printFmt: .asciz "\n%s\n"
+
+# END main
