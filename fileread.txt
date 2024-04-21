@@ -1,3 +1,0 @@
-this is a file seperated by spaces and has 3 lines
-this is line 2
-this is line 3 and EOF

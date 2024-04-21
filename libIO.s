@@ -1,7 +1,6 @@
 # File Name:   libIO.s
 # Programmers: Rohan Abraham, Sullivan Prellwitz, Tero Suontaka
 # Purpose:     Library of general IO functions for RSA
-
 .global stringToArray
 # Function: stringToArray
 # Purpose:  Converts a string (byte array) to an array of 32 bit integers
@@ -139,54 +138,138 @@ arrayToString:
 .data
 # END arrayToString
 
-.global readFileIO
+# START readKeyFile
+.global readKeyFile
 #
-# Function: readFileIO
-# Purpose:  Parses a user supplied file to a string
+# Function: readKeyFile
+# Purpose:  Parses a user supplied file key file (public or private RSA key)
 # Input:    r0 - name of file to read w/out path (file must be in the same location as executable)
 # Output:   r0 - pointer to string
 #
-.bss
-    fileBuffer: 
-        .space 100
-readFileIO:
-    PUSH {r4, lr}
+.text
+readKeyFile:
+    PUSH {r4, r5, lr}
 
     // Open file (C function fopen) save pointer to file in r4
-    LDR r1, =fileOpModeRead
+    LDR r1, =keyFileOp
     BL fopen
-    MOV r4, r0 
+    MOV r4, r0
 
     // Check for null file
     CMP r4, #0
-    BEQ errNullFile
+    BEQ errKeyFile
 
     // Parse file (C function fscanf)
-    LDR r0, [r4]
-    LDR r1, =readFileFmt
-    ADD r2, pc, #fileBuffer
-    BL fscanf
+    MOV r2, r4
+    MOV r1, #2048
+    LDR r0, =keyFile
+    BL fgets
 
     // Close file
     MOV r0, r4
     BL fclose
+    B exitReadKey
 
-    LDR r0, =readFileFmt
-    LDR r1, =fileBuffer
-    BL printf
+    errKeyFile:
+        LDR r0, =errKeyFileMsg
+        BL printf
+        B exitReadKey
+    
+    exitReadKey:
+    POP {r4, r5, pc}
+.data
+    keyFileOp: .asciz "r+"
+    errKeyFileMsg: .asciz "\nERROR: NULL FILE\n"
+    keyFile: .byte 0
+# END readKeyFile
+
+.global readMessageFile
+#
+# Function: readMessageFile
+# Purpose:  Parses a user supplied file containing a message to a string (can be encrypted or not)
+# Input:    r0 - name of file to read w/out path (file must be in the same location as executable)
+# Input Limit: message file will only read the first 1024 characters
+# Output:   r0 - pointer to string
+#
+.text
+readMessageFile:
+    PUSH {r4, r5, lr}
+
+    // Open file (C function fopen) save pointer to file in r4
+    LDR r1, =fileOpModeRead
+    BL fopen
+    MOV r4, r0
+
+    // Check for null file
+    CMP r4, #0
+    BEQ errReadNullFile
+
+    // Parse file (C function fscanf)
+    MOV r2, r4
+    MOV r1, #1024
+    LDR r0, =fileRead1
+    BL fgets
+
+    // Close file
+    MOV r0, r4
+    BL fclose
     B exitReadFile
 
     errReadNullFile:
-        LDR r0, errReadNullFileMsg
+        LDR r0, =errReadNullFileMsg
         BL printf
         B exitReadFile
     
-    
     exitReadFile:
-    POP {r4, pc}
-
+    POP {r4, r5, pc}
 .data
-    fileOpModeRead: .asciz "r"
+    fileOpModeRead: .asciz "r+"
     errReadNullFileMsg: .asciz "\nERROR: NULL FILE\n"
-    readFileFmt: .asciz "%s"
-# END readFileIO
+    fileRead: .byte 0
+# END readMessageFile
+
+# START writeFile
+.global writeFile
+#
+# Function: writeFile
+# Purpose:  Write to a file, name provided by user
+# Input:    r0 - name of file to write
+# Input:    r1 - pointer to message to write
+#
+.text
+writeFile:
+    PUSH {r4, r5, lr}
+
+    // Store message in r5
+    MOV r5, r1
+
+    // Open file (C function fopen) save pointer to file in r4
+    LDR r1, =fileOpModeWrite
+    BL fopen
+    MOV r4, r0
+
+    // Check for null file
+    CMP r4, #0
+    BEQ errWriteFile
+
+    // Write file (C function fprintf)
+    MOV r0, r4
+    MOV r1, r5
+    BL fprintf
+
+    // Close file
+    MOV r0, r4
+    BL fclose
+    B exitWriteFile
+
+    errWriteFile:
+        LDR r0, =errWriteFileMsg
+        BL printf
+        B exitWriteFile
+    
+    exitWriteFile:
+    POP {r4, r5, pc}
+.data
+    fileOpModeWrite: .asciz "w+"
+    errWriteFileMsg: .asciz "\nERROR: COULDN'T WRITE TO FILE\n"
+# END writeFile
