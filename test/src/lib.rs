@@ -2,6 +2,9 @@ use libloading::{Library, Symbol};
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::os::raw::c_char;
+use std::env;
+use std::fs;
+use lipsum::lipsum;
 
 #[cfg(test)]
 mod tests {
@@ -151,6 +154,45 @@ mod tests {
             let result = c_string.to_string_lossy().into_owned();
     
             assert_eq!(result, "Another string");
+        }
+    }
+
+    #[test]
+    fn write_to_file_expect_true() {
+        unsafe {
+            let lib_rsa = Library::new("./libRSA.so").unwrap();
+            
+            let write_file = lib_rsa.get::<Symbol<extern "C" fn(*const c_char, *const c_char)>>(b"writeFile").unwrap();
+    
+            let file_name = CString::new("testWrite.txt").expect("CString::new failed");
+            let char_ptr_fname: *const c_char = file_name.as_ptr();
+            let message = CString::new("writing some text to a file!!!!!").expect("CString::new failed");
+            let char_ptr_message: *const c_char = message.as_ptr();
+
+            write_file(char_ptr_fname, char_ptr_message);
+            let file_contents = fs::read_to_string("testWrite.txt").expect("Should have been able to read the file");
+            assert_eq!(file_contents, "writing some text to a file!!!!!");
+        }
+    }
+
+    #[test]
+    fn read_from_message_file_expect_true() {
+        unsafe {
+            let lorem = lipsum(25);
+            let lib_rsa = Library::new("./libRSA.so").unwrap();
+            
+            let read_file = lib_rsa.get::<Symbol<extern "C" fn(*const c_char) -> *const c_char>>(b"readMessageFile").unwrap();
+    
+            let file_name = CString::new("testRead.txt").expect("CString::new failed");
+            let char_ptr_fname: *const c_char = file_name.as_ptr();
+
+            fs::write("testRead.txt", lorem.clone()).expect("Unable to write file");
+
+            let file_contents = read_file(char_ptr_fname);
+            // Convert C string (file contents) to Rust String
+            let c_string = CStr::from_ptr(file_contents);
+            let result = c_string.to_string_lossy().into_owned();
+            assert_eq!(result, lorem.clone());
         }
     }
 

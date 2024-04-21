@@ -207,7 +207,7 @@ readMessageFile:
     // Parse file (C function fscanf)
     MOV r2, r4
     MOV r1, #1024
-    LDR r0, =fileRead1
+    LDR r0, =fileRead
     BL fgets
 
     // Close file
@@ -221,6 +221,7 @@ readMessageFile:
         B exitReadFile
     
     exitReadFile:
+        LDR r0, =fileRead
     POP {r4, r5, pc}
 .data
     fileOpModeRead: .asciz "r+"
