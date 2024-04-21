@@ -117,7 +117,7 @@ mod tests {
         unsafe {
             let lib_rsa = Library::new("./libRSA.so").unwrap();
             let cpubexp = lib_rsa.get::<Symbol<extern "C" fn(i32, i32, i32) -> i32>>(b"cpubexp").unwrap();
-            let result = cpubexp(41, 43, 557); // p = 857 | q = 449 | e = 285457
+            let result = cpubexp(41, 43, 557); // p = 41 | q = 43 | e = 557
             assert_eq!(result , 557);
         }
     }

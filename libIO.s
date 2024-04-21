@@ -145,6 +145,10 @@ arrayToString:
 # Purpose:  Parses a user supplied file key file (public or private RSA key)
 # Input:    r0 - name of file to read w/out path (file must be in the same location as executable)
 # Output:   r0 - pointer to string
+# Key Format:
+# === START PUB KEY ===
+# hex exp 
+# === END PUB KEY ===
 #
 .text
 readKeyFile:
@@ -160,10 +164,9 @@ readKeyFile:
     BEQ errKeyFile
 
     // Parse file (C function fscanf)
-    MOV r2, r4
-    MOV r1, #2048
-    LDR r0, =keyFile
-    BL fgets
+    MOV r0, r4
+    LDR r1, =keyFile
+    BL fscanf
 
     // Close file
     MOV r0, r4
@@ -176,11 +179,13 @@ readKeyFile:
         B exitReadKey
     
     exitReadKey:
+        LDR r0, =keyFile
     POP {r4, r5, pc}
 .data
-    keyFileOp: .asciz "r+"
+    keyFileOp: .asciz "r"
     errKeyFileMsg: .asciz "\nERROR: NULL FILE\n"
-    keyFile: .byte 0
+    keyFile: .word 0
+    keyFormat: .asciz "%d"
 # END readKeyFile
 
 .global readMessageFile
@@ -271,6 +276,6 @@ writeFile:
     exitWriteFile:
     POP {r4, r5, pc}
 .data
-    fileOpModeWrite: .asciz "w+"
+    fileOpModeWrite: .asciz "w"
     errWriteFileMsg: .asciz "\nERROR: COULDN'T WRITE TO FILE\n"
 # END writeFile
