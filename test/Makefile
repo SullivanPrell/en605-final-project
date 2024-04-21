@@ -36,6 +36,7 @@ libIO.o: ../libIO.s
 clean: 
 	rm -f *.o *.so *.a
 	rm -rf target
+	rm -f *.txt
 
 # Make project and run tests
 test:
