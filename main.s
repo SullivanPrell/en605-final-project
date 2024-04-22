@@ -59,15 +59,6 @@ main:
           LDR r1, =pubExpE
           BL scanf
 
-           # prompt x
-          LDR r0, =promptX
-          BL printf
-
-          # save x
-          LDR r0, =intFmt
-          LDR r1, =xVal
-          BL scanf
-
           # validate e, -1 if bad news bears, otherwise e is already stored
           LDR r0, =pVal
           LDR r0, [r0]
