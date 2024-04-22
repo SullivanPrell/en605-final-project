@@ -59,7 +59,7 @@ main:
           LDR r1, =pubExpE
           BL scanf
 
-          # validate e, -1 if bad news bears, otherwise e is already stored
+          # validate e, -1 if bad news bears
           LDR r0, =pVal
           LDR r0, [r0]
           LDR r1, =qVal
@@ -69,42 +69,27 @@ main:
           BL cpubexp
           CMP r0, #-1
           BEQ inputError
-          LDR r1, =pubExpE
-          STR r0, [r1]
+
+           # grab mod
+          LDR r0, =pVal
+          LDR r0, [r0]
+          LDR r1, =qVal
+          LDR r1, [r1]
+          BL pqMod
+          LDR r2, =modVal
+          STR r0, [r2]
 
           # calc private exp, -1 if bad news bears, store in privExp
           LDR r0, =pubExpE
           LDR r0, [r0]
-          LDR r1, =xVal
+          LDR r1, =modVal
           LDR r1, [r1]
           BL cprivexp
           CMP r0, #-1
           BEQ inputError
           LDR r1, =privExp
           STR r0, [r1]
-
-          # grab totient and mod r3, r4
-          LDR r0, =pVal
-          LDR r0, [r0]
-          LDR r1, =qVal
-          LDR r1, [r1]
-          BL pqMod
-          LDR r3, =modVal
-          STR r0, [r3]
      
-          # write private key to file - exp mod
-          LDR r0, =privKeyFileStr
-          LDR r1, =keyFmtStr
-          LDR r2, =privExp
-          LDR r2, [r2]
-          LDR r3, =modVal
-          LDR r3, [r3]
-          BL sprintf
-          LDR r0, =privKeyFileStr
-          LDR r0, =privKeyFile
-          LDR r1, =privKeyFileStr
-          BL writeFile
-
           # write public key to file - exp mod
           LDR r0, =pubKeyFileStr
           LDR r1, =keyFmtStr
@@ -113,10 +98,23 @@ main:
           LDR r3, =modVal
           LDR r3, [r3]
           BL sprintf
-          LDR r0, =pubKeyFileStr
           LDR r0, =pubKeyFile
           LDR r1, =pubKeyFileStr
           BL writeFile
+
+          # write private key to file - exp mod
+          LDR r0, =privKeyFileStr
+          LDR r1, =keyFmtStr
+          LDR r2, =privExp
+          LDR r2, [r2]
+          LDR r3, =modVal
+          LDR r3, [r3]
+          BL sprintf
+          LDR r0, =privKeyFile
+          LDR r1, =privKeyFileStr
+          BL writeFile
+
+          
 
           B exit
    
@@ -139,7 +137,7 @@ main:
           MOV r1, #1024
           LDR r2, =stdin
           LDR r2, [r2]
-          BL scanf
+          BL fgets
 
           # prompt for public key exp
           LDR r0, =promptPubExp
@@ -148,15 +146,6 @@ main:
           # store pub exp
           LDR r0, =intFmt
           LDR r1, =pubExpE
-          BL scanf
-
-          # prompt for totient
-          LDR r0, =promptTotient
-          BL printf
-
-          # store totient
-          LDR r0, =intFmt
-          LDR r1, =totientVal
           BL scanf
 
           # prompt for mod
@@ -168,7 +157,7 @@ main:
           LDR r1, =modVal
           BL scanf
 
-          # get len  of plaintext save in r3 temp
+          # get len of plaintext
           LDR r0, =plaintext
           BL strlen
           MOV r1, r0
@@ -179,9 +168,10 @@ main:
 
           # encrypt plaintext
           LDR r2, =pubExpE
+          LDR r2, [r2]
           LDR r3, =modVal
+          LDR r3, [r3]
           BL processArray
-          BL arrayToString
           LDR r2, =ciphertext
           STR r0, [r2]
 
@@ -206,7 +196,7 @@ main:
 .data
      pubKeyFile: .asciz "key.pub"
      privKeyFile: .asciz "key"
-     keyFmtStr: .asciz "%d %d %d"
+     keyFmtStr: .asciz "%d %d"
      pubKeyFileStr: .byte 0
      privKeyFileStr: .byte 0
      plaintext: .byte 0
@@ -237,5 +227,5 @@ main:
      promptPubKeyFile: .asciz "\nPlease enter your public key filename [file should be in the same dir as the executable:]"
      promptPrivKeyFile: .asciz "\nPlease enter your private key filename [file should be in the same dir as the executable]: "
      introPrompt: .asciz "\n=== Small key size RSA generation ===\nPlease prepare the following information:\n- Positive integers P and Q such that P & Q are both prime\n- Public key value e s.t. 1 < e < Φ(n) and e is co-prime to Φ(n) [ gcd(e, Φ(n)) = 1 ]\n- Private key calc value x such that gcd(e,x) == Φ(n)\n"
-     promptAction: .asciz "\Please enter 1 to generate keys\n2 to encrypt plaintext\n3 to encrypt plaintext file\n4 to decrypt ciphertext\n5 to decrypt ciphertext file\n"
+     promptAction: .asciz "\Please enter:\n1 - to generate keys\n2 - to encrypt plaintext\n3 - to encrypt plaintext file\n4 - to decrypt ciphertext\n5 - to decrypt ciphertext file\nSelection: "
 # END main
