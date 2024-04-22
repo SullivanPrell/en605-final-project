@@ -144,11 +144,10 @@ arrayToString:
 # Function: readKeyFile
 # Purpose:  Parses a user supplied file key file (public or private RSA key)
 # Input:    r0 - name of file to read w/out path (file must be in the same location as executable)
-# Output:   r0 - pointer to string
-# Key Format:
-# === START PUB KEY ===
-# hex exp 
-# === END PUB KEY ===
+# Output:   r0 - exp
+#           r1 - totient
+#           r2 - mod
+# Key format: %d %d %d [exp, totient, mod]
 #
 .text
 readKeyFile:
@@ -166,6 +165,10 @@ readKeyFile:
     // Parse file (C function fscanf)
     MOV r0, r4
     LDR r1, =keyFile
+    LDR r2, =keyFormat
+    LDR r3, =keyExp
+    LDR r4, =keyTot
+    LDR r5, =keyMod
     BL fscanf
 
     // Close file
@@ -185,7 +188,10 @@ readKeyFile:
     keyFileOp: .asciz "r"
     errKeyFileMsg: .asciz "\nERROR: NULL FILE\n"
     keyFile: .word 0
-    keyFormat: .asciz "%d"
+    keyFormat: .asciz "%d %d %d"
+    keyExp: .word 0
+    keyMod: .word 0
+    keyTot: .word 0
 # END readKeyFile
 
 .global readMessageFile
