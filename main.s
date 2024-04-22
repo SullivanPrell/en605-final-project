@@ -74,7 +74,9 @@ main:
 
           # calc private exp, -1 if bad news bears, store in privExp
           LDR r0, =pubExpE
+          LDR r0, [r0]
           LDR r1, =xVal
+          LDR r1, [r1]
           BL cprivexp
           CMP r0, #-1
           BEQ inputError
@@ -83,38 +85,35 @@ main:
 
           # grab totient and mod r3, r4
           LDR r0, =pVal
+          LDR r0, [r0]
           LDR r1, =qVal
+          LDR r1, [r1]
           BL pqMod
           LDR r3, =modVal
           STR r0, [r3]
-          LDR r0, =pVal
-          LDR r1, =qVal
-          BL totient
-          LDR r3, =totientVal
-          STR r0, [r3]
-
-          # write private key to file - exp r2, totient r3, mod r4 | writes in hex
+     
+          # write private key to file - exp mod
           LDR r0, =privKeyFileStr
           LDR r1, =keyFmtStr
           LDR r2, =privExp
-          LDR r3, =totientVal
-          LDR r4, =modVal
+          LDR r2, [r2]
+          LDR r3, =modVal
+          LDR r3, [r3]
           BL sprintf
           LDR r0, =privKeyFileStr
-          BL puts
           LDR r0, =privKeyFile
           LDR r1, =privKeyFileStr
           BL writeFile
 
-          # write public key to file - exp r2, totient r3, mod r4 | writes in hex
+          # write public key to file - exp mod
           LDR r0, =pubKeyFileStr
           LDR r1, =keyFmtStr
           LDR r2, =pubExpE
-          LDR r3, =totientVal
-          LDR r4, =modVal
+          LDR r2, [r2]
+          LDR r3, =modVal
+          LDR r3, [r3]
           BL sprintf
           LDR r0, =pubKeyFileStr
-          BL puts
           LDR r0, =pubKeyFile
           LDR r1, =pubKeyFileStr
           BL writeFile
@@ -126,9 +125,20 @@ main:
           LDR r0, =promptPlainText
           BL printf
 
+          # clear stdin
+          clearStdin:
+               BL getchar
+               CMP r0, #'\n'
+               BEQ cont
+               CMP r0, #-1
+               BEQ cont
+               B clearStdin
+          cont:
           # save plaintext
-          LDR r0, =stringFmt
-          LDR r1, =plaintext
+          LDR r0, =plaintext
+          MOV r1, #1024
+          LDR r2, =stdin
+          LDR r2, [r2]
           BL scanf
 
           # prompt for public key exp
@@ -197,7 +207,6 @@ main:
      pubKeyFile: .asciz "key.pub"
      privKeyFile: .asciz "key"
      keyFmtStr: .asciz "%d %d %d"
-     stdin: .asciz "stdin"
      pubKeyFileStr: .byte 0
      privKeyFileStr: .byte 0
      plaintext: .byte 0
@@ -206,9 +215,7 @@ main:
      privExp: .word 0
      pVal: .word 0
      qVal: .word 0
-     xVal: .word 0
      modVal: .word 0
-     totientVal: .word 0
      plaintextFileName: .word 0
      ciphertextFileName: .word 0
      actionChoice: .word 0
@@ -220,14 +227,12 @@ main:
      promptP: .asciz "\nPlease enter your P value: "
      promptQ: .asciz "\nPlease enter your Q value: "
      promptE: .asciz "\nPlease enter your public exponenet E: "
-     promptX: .asciz "\nPlease enter your X value: "
      promptPlainText: .asciz "\nPlease enter your plaintext: "
      promptCipherText: .asciz "\nPlease enter your ciphertext: "
      promptCTFile: .asciz "\nPlease enter your ciphertext file [limit 1024 characters, file should be in the same dir as the executable]: "
      promptPTFile: .asciz "\nPlease enter your plaintext file [limit 1024 characters, file should be in the same dir as the executable]: "
      promptPubExp: .asciz "\nPlease enter your public key exponent: "
      promptPrivExp: .asciz "\nPlease enter your private key exponent: "
-     promptTotient: .asciz "\nPlease enter your totient value: "
      promptMod: .asciz "\nPlease enter your modulo value: "
      promptPubKeyFile: .asciz "\nPlease enter your public key filename [file should be in the same dir as the executable:]"
      promptPrivKeyFile: .asciz "\nPlease enter your private key filename [file should be in the same dir as the executable]: "
