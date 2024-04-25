@@ -203,7 +203,7 @@ process:
      MOV pc, lr
 
 .data
-# END process
+# END process Φ(n) 
 
 .global processArray
 # Function: processArray
@@ -445,8 +445,9 @@ encrypt:
      MOV r4, r0
 
      # get string length
+     # subtract one to remove added new line character from fgets
      BL strlen
-     MOV r5, r0
+     SUB r5, r0, #1
 
      # convert string to array
      MOV r0, r4
@@ -479,3 +480,55 @@ encrypt:
      promptText: .asciz "Enter text to encrypt: "
      fileName: .asciz "encrypted.txt"
      encryptionDone: .asciz "Encrypted text is in encrypted.txt\n"
+
+# START decrypt
+.global decrypt
+# Function: decrypt
+# Purpose:  Decrypts a message from encrypted.txt given private key and modulus
+.text
+decrypt:
+     PUSH {r4, r5, lr}
+
+     # get public key
+     LDR r0, =promptPrivKey
+     BL printf
+
+     LDR r0, =intFmt
+     LDR r1, =privateKey
+     BL scanf
+
+     # get modulus
+     LDR r0, =promptModulus
+     BL printf
+
+     LDR r0, =intFmt
+     LDR r1, =modulus
+     BL scanf
+
+     # read array
+     LDR r0, =fileName
+     BL readArray
+
+     # decrypt array
+     LDR r2, =privateKey
+     LDR r2, [r2]
+     LDR r3, =modulus
+     LDR r3, [r3]
+     BL processArray
+
+     # convert array to string
+     BL arrayToString
+     MOV r1, r0
+     LDR r0, =plaintextFileName
+     BL writeFile
+
+     # print done message
+     LDR r0, =decryptionDone
+     BL printf
+
+     POP {r4, r5, pc} 
+.data
+     promptPrivKey: .asciz "Enter private key: "
+     privateKey: .word 0
+     plaintextFileName: .asciz "plaintext.txt"
+     decryptionDone: .asciz "Decrypted text is in plaintext.txt\n"

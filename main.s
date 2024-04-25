@@ -29,8 +29,7 @@ main:
          Else2:
              CMP r0, #3
              BNE Else3
-                 # TODO decrypt
-                 #BL decrypt
+                 BL decrypt
                  B EndIf
 
              Else3:
@@ -48,6 +47,6 @@ main:
 .data
      intFmt: .asciz "%d"
      errorMsg: .asciz "\nError: invalid selection \n"
-     promptAction: .asciz "\Please enter:\n1 - to generate keys\n2 - to encrypt plaintext\n3 - to decrypt ciphertext (in progress)\nSelection: "
+     promptAction: .asciz "\Please enter:\n1 - to generate keys\n2 - to encrypt plaintext\n3 - to decrypt ciphertext\nSelection: "
      actionChoice: .word 0
 # END main

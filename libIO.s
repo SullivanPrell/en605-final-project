@@ -119,7 +119,6 @@ arrayToString:
      arrayToStringLoopEnd:
 
      # store null in last space
-     ADD r7, r7, #1
      MOV r0, #0
      STRB r0, [r6, r7]
 
@@ -137,108 +136,6 @@ arrayToString:
 
 .data
 # END arrayToString
-
-# START readKeyFile
-.global readKeyFile
-#
-# Function: readKeyFile
-# Purpose:  Parses a user supplied file key file (public or private RSA key)
-# Input:    r0 - name of file to read w/out path (file must be in the same location as executable)
-# Output:   r0 - exp
-#           r1 - totient
-#           r2 - mod
-# Key format: %d %d %d [exp, totient, mod]
-#
-.text
-readKeyFile:
-    PUSH {r4, r5, lr}
-
-    // Open file (C function fopen) save pointer to file in r4
-    LDR r1, =keyFileOp
-    BL fopen
-    MOV r4, r0
-
-    // Check for null file
-    CMP r4, #0
-    BEQ errKeyFile
-
-    // Parse file (C function fscanf)
-    MOV r0, r4
-    LDR r1, =keyFile
-    LDR r2, =keyFormat
-    LDR r3, =keyExp
-    LDR r4, =keyTot
-    LDR r5, =keyMod
-    BL fscanf
-
-    // Close file
-    MOV r0, r4
-    BL fclose
-    B exitReadKey
-
-    errKeyFile:
-        LDR r0, =errKeyFileMsg
-        BL printf
-        B exitReadKey
-    
-    exitReadKey:
-        LDR r0, =keyFile
-    POP {r4, r5, pc}
-.data
-    keyFileOp: .asciz "r"
-    errKeyFileMsg: .asciz "\nERROR: NULL FILE\n"
-    keyFile: .word 0
-    keyFormat: .asciz "%d %d %d"
-    keyExp: .word 0
-    keyMod: .word 0
-    keyTot: .word 0
-# END readKeyFile
-
-.global readMessageFile
-#
-# Function: readMessageFile
-# Purpose:  Parses a user supplied file containing a message to a string (can be encrypted or not)
-# Input:    r0 - name of file to read w/out path (file must be in the same location as executable)
-# Input Limit: message file will only read the first 1024 characters
-# Output:   r0 - pointer to string
-#
-.text
-readMessageFile:
-    PUSH {r4, r5, lr}
-
-    // Open file (C function fopen) save pointer to file in r4
-    LDR r1, =fileOpModeRead
-    BL fopen
-    MOV r4, r0
-
-    // Check for null file
-    CMP r4, #0
-    BEQ errReadNullFile
-
-    // Parse file (C function fscanf)
-    MOV r2, r4
-    MOV r1, #1024
-    LDR r0, =fileRead
-    BL fgets
-
-    // Close file
-    MOV r0, r4
-    BL fclose
-    B exitReadFile
-
-    errReadNullFile:
-        LDR r0, =errReadNullFileMsg
-        BL printf
-        B exitReadFile
-    
-    exitReadFile:
-        LDR r0, =fileRead
-    POP {r4, r5, pc}
-.data
-    fileOpModeRead: .asciz "r+"
-    errReadNullFileMsg: .asciz "\nERROR: NULL FILE\n"
-    fileRead: .byte 0
-# END readMessageFile
 
 # START writeFile
 .global writeFile
@@ -340,7 +237,7 @@ writeArray:
     errWriteArray:
         LDR r0, =errWriteFileMsg
         BL printf
-        B exitWriteFile
+        B exitWriteArray
     
     exitWriteArray:
     POP {r4, r5, r6, r7, pc}
@@ -374,27 +271,27 @@ readArray:
     // r6 - array length
     // r7 - loop counter
     MOV r6, #0
+    # check if end of file
+    MOV r0, r4
+    BL feof
+    CMP r0, #0
+    BNE endScanFileLoop
     scanFileLoop:
         # scan from file
         MOV r0, r4
         LDR r1, =readFormat
+        LDR r2, =num
         BL fscanf
-        # if character is a space, continue
-        # if it is null, end loop
-        # otherwise, push to stack
-        CMP r0, #32
-        BNE scanFileElse
-            B endScanFileIf
-        scanFileElse:
-            CMP r0, #0
-            BNE scanFileElse2
-                B endScanFileLoop
-            scanFileElse2:
-                PUSH {r0}
-                ADD r6, r6, #1
-                B endScanFileIf
-
-        endScanFileIf:
+        # check if end of file
+        MOV r0, r4
+        BL feof
+        CMP r0, #0
+        BNE endScanFileLoop
+        # push to stack
+        LDR r0, =num
+        LDR r0, [r0]
+        PUSH {r0}
+        ADD r6, r6, #1
         B scanFileLoop
 
     endScanFileLoop:
@@ -405,15 +302,17 @@ readArray:
     MOV r5, r0
 
     # initialize loop counter
-    MOV r7, #0
+    MOV r7, #1
     storeArrayLoop:
         CMP r7, r6
-        BGE endStoreArrayLoop
+        BGT endStoreArrayLoop
         # pop stack and store in array from back first
         SUB r1, r6, r7
         LSL r1, r1, #2
         POP {r0}
         STR r0, [r5, r1]
+        ADD r7, r7, #1
+        B storeArrayLoop
 
     endStoreArrayLoop:
 
@@ -425,13 +324,16 @@ readArray:
     errReadNullArray:
         LDR r0, =errReadNullFileMsg
         BL printf
-        B exitReadFile
+        B exitReadArray
     
     exitReadArray:
     MOV r0, r5
     MOV r1, r6
     POP {r4, r5, r6, r7, pc}
 .data
-    readFormat: .asciz "%d "
+    readFormat: .asciz "%d"
+    num: .word 0
+    fileOpModeRead: .asciz "r"
+    errReadNullFileMsg: .asciz "ERROR: NULL FILE\n"
 # END readArray
 
