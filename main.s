@@ -114,8 +114,6 @@ main:
           LDR r1, =privKeyFileStr
           BL writeFile
 
-          
-
           B exit
    
      encryptPlaintext:
@@ -134,7 +132,7 @@ main:
           cont:
           # save plaintext
           LDR r0, =plaintext
-          MOV r1, #1024
+          MOV r1, #plaintextLen
           LDR r2, =stdin
           LDR r2, [r2]
           BL fgets
@@ -157,14 +155,10 @@ main:
           LDR r1, =modVal
           BL scanf
 
-          # get len of plaintext
+          # To Array -> r0 array | r1 length
           LDR r0, =plaintext
-          BL strlen
-          MOV r1, r0
-
-          # call string to array, array in r0, length in r1
-          LDR r0, =plaintext
-          BL arrayToString
+          MOV r1, #plaintextLen
+          BL stringToArray
 
           # encrypt plaintext
           LDR r2, =pubExpE
@@ -172,14 +166,14 @@ main:
           LDR r3, =modVal
           LDR r3, [r3]
           BL processArray
-          LDR r2, =ciphertext
-          STR r0, [r2]
+          BL arrayToString
+          MOV r1, r0
+          LDR r0, =encryptedText
+          BL writeFile
 
-          # print ciphertext
-          LDR r0, =stringFmt
-          LDR r1, =ciphertext
-          BL printf
           B exit
+
+          
      encryptPlaintextFile:
 
      decryptCiphertext:
@@ -196,10 +190,12 @@ main:
 .data
      pubKeyFile: .asciz "key.pub"
      privKeyFile: .asciz "key"
+     encryptedText: .asciz "encrypted.txt"
      keyFmtStr: .asciz "%d %d"
      pubKeyFileStr: .byte 0
      privKeyFileStr: .byte 0
-     plaintext: .byte 0
+     plaintext: .space 128
+     plaintextLen=.-plaintext
      ciphertext: .byte 0
      pubExpE: .word 0
      privExp: .word 0

@@ -285,3 +285,97 @@ writeFile:
     fileOpModeWrite: .asciz "w"
     errWriteFileMsg: .asciz "\nERROR: COULDN'T WRITE TO FILE\n"
 # END writeFile
+
+.global writeIntArrayToFile
+# Function: writeIntArrayToFile
+# Purpose:  Writes an integer array to a file in ASCII
+# Input:    r0 - pointer to integer array
+#           r1 - size of array
+#           r2 - filename 
+# Output:   r0 - pointer to string
+#           r1 - size of string
+.text
+writeIntArrayToFile:
+    # push stack
+    SUB sp, sp, #24
+    STR lr, [sp, #0]
+    STR r4, [sp, #4]
+    STR r5, [sp, #8]
+    STR r6, [sp, #12]
+    STR r7, [sp, #16]
+    STR r8, [sp, #20]
+
+    # register dictionary
+    # r4 - pointer to array
+    # r5 - size of array
+    # r6 - filename
+    # r7 - loop counter
+    # r8 - file pointer
+    MOV r4, r0
+    MOV r5, r1
+    MOV r6, r2
+
+    // Open file (C function fopen) save pointer to file in r4
+    MOV r0, r6
+    LDR r1, =writeArryMode
+    BL fopen
+    MOV r8, r0
+
+    // Check for null file
+    CMP r8, #0
+    BEQ errWriteArrayFile
+
+    # initialize counter
+    MOV r7, #0
+
+    writeToFileLoop:
+        # exit if counter >= array size
+        CMP r7, r5
+        BGE writeToFileLoopEnd
+
+        # get integer from current word
+        # write to file
+        LDR r2, [r4, r7, lsl #2]
+        AND r2, r2, #0xFF
+        // Write char to file
+        MOV r0, r8
+        LDR r1, =charFmt
+        BL fprintf
+
+        // Write space to file
+        MOV r0, r8
+        LDR r1, =charFmt
+        MOV r2, #32
+        BL fprintf
+
+        # increment and loop
+        ADD r7, r7, #1
+        B writeToFileLoop    
+
+    errWriteArrayFile:
+        LDR r0, =errWriteFileMsg
+        BL printf
+        B writeToFileLoopEnd
+             
+    writeToFileLoopEnd:
+    // Close file
+    MOV r0, r8
+    BL fclose
+    B exitWriteFile
+
+    # pop stack
+    LDR lr, [sp, #0]
+    LDR r4, [sp, #4]
+    LDR r5, [sp, #8]
+    LDR r6, [sp, #12]
+    LDR r7, [sp, #16]
+    LDR r8, [sp, #20]
+    ADD sp, sp, #24
+    MOV pc, lr
+
+.data
+    writeArryMode: .asciz "w+"
+    errWriteFileArrayMsg: .asciz "\nERROR: COULDN'T WRITE TO FILE\n"
+    charFmt: .asciz "%c"
+# END writeIntArrayToFile
+
