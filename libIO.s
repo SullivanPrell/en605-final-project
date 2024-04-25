@@ -285,3 +285,153 @@ writeFile:
     fileOpModeWrite: .asciz "w"
     errWriteFileMsg: .asciz "\nERROR: COULDN'T WRITE TO FILE\n"
 # END writeFile
+
+# START writeArray
+.global writeArray
+# Function: writeArray
+# Purpose:  Write 32 bit integer array to a file
+# Input:    r0 - Name of file to write
+# Input:    r1 - pointer to message to write
+# Input:    r2 - length of string
+.text
+writeArray:
+    PUSH {r4, r5, r6, r7, lr}
+
+    // register dictionary
+    // r4 - file pointer
+    // r5 - array pointer
+    // r6 - array length
+    // r7 - loop counter
+    MOV r5, r1
+    MOV r6, r2
+
+    // Open file (C function fopen) save pointer to file in r4
+    LDR r1, =fileOpModeWrite
+    BL fopen
+    MOV r4, r0
+
+    // Check for null file
+    CMP r4, #0
+    BEQ errWriteArray
+
+    # initialize loop counter
+    MOV r7, #0
+    writeArrayLoop:
+        # exit if loop counter >= array length
+        CMP r7, r6
+        BGE endWriteArrayLoop
+        # load integer from array
+        LSL r3, r7, #2
+        LDR r2, [r5, r3]
+        # write integer to file
+        MOV r0, r4
+        LDR r1, =writeFormat
+        BL fprintf
+        ADD r7, r7, #1
+        B writeArrayLoop
+
+    endWriteArrayLoop:
+
+    // Close file
+    MOV r0, r4
+    BL fclose
+    B exitWriteArray
+
+    errWriteArray:
+        LDR r0, =errWriteFileMsg
+        BL printf
+        B exitWriteFile
+    
+    exitWriteArray:
+    POP {r4, r5, r6, r7, pc}
+.data
+    writeFormat: .asciz "%d "
+# END writeArray
+
+# START readArray
+.global readArray
+# Function: readArray
+# Purpose:  Read file to 32 bit integer array
+# Input:    r0 - name of file to read
+# Output:   r0 - pointer to array
+# Output:   r1 - array length
+.text
+readArray:
+    PUSH {r4, r5, r6, r7, lr}
+
+    // Open file (C function fopen) save pointer to file in r4
+    LDR r1, =fileOpModeRead
+    BL fopen
+    MOV r4, r0
+
+    // Check for null file
+    CMP r4, #0
+    BEQ errReadNullArray
+
+    // register dictionary
+    // r4 - file pointer
+    // r5 - pointer to array
+    // r6 - array length
+    // r7 - loop counter
+    MOV r6, #0
+    scanFileLoop:
+        # scan from file
+        MOV r0, r4
+        LDR r1, =readFormat
+        BL fscanf
+        # if character is a space, continue
+        # if it is null, end loop
+        # otherwise, push to stack
+        CMP r0, #32
+        BNE scanFileElse
+            B endScanFileIf
+        scanFileElse:
+            CMP r0, #0
+            BNE scanFileElse2
+                B endScanFileLoop
+            scanFileElse2:
+                PUSH {r0}
+                ADD r6, r6, #1
+                B endScanFileIf
+
+        endScanFileIf:
+        B scanFileLoop
+
+    endScanFileLoop:
+
+    # allocate memory
+    LSL r0, r6, #2
+    BL malloc
+    MOV r5, r0
+
+    # initialize loop counter
+    MOV r7, #0
+    storeArrayLoop:
+        CMP r7, r6
+        BGE endStoreArrayLoop
+        # pop stack and store in array from back first
+        SUB r1, r6, r7
+        LSL r1, r1, #2
+        POP {r0}
+        STR r0, [r5, r1]
+
+    endStoreArrayLoop:
+
+    // Close file
+    MOV r0, r4
+    BL fclose
+    B exitReadArray
+
+    errReadNullArray:
+        LDR r0, =errReadNullFileMsg
+        BL printf
+        B exitReadFile
+    
+    exitReadArray:
+    MOV r0, r5
+    MOV r1, r6
+    POP {r4, r5, r6, r7, pc}
+.data
+    readFormat: .asciz "%d "
+# END readArray
+
