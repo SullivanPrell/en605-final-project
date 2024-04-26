@@ -203,7 +203,7 @@ process:
      MOV pc, lr
 
 .data
-# END process
+# END process Φ(n) 
 
 .global processArray
 # Function: processArray
@@ -274,3 +274,261 @@ processArray:
      MOV pc, lr
 
 .data
+
+# START generateKeys
+.global generateKeys
+
+# Function: generateKeys
+# Purpose:  Prompt user for primes and public exponent and generate private key
+.text
+generateKeys:
+    PUSH {r4, r5, lr}
+    # give user info for p,q,e
+    LDR r0, =introPrompt
+    BL printf
+
+    promptPrimesLoop:
+       # prompt p
+       LDR r0, =promptP
+       BL printf
+
+       # save p
+       LDR r0, =intFmt
+       LDR r1, =pVal
+       BL scanf
+
+       # prompt q
+       LDR r0, =promptQ
+       BL printf
+
+       # save q
+       LDR r0, =intFmt
+       LDR r1, =qVal
+       BL scanf
+
+       # calculate totient
+       # loop if bad value
+       LDR r0, =pVal
+       LDR r0, [r0]
+       LDR r1, =qVal
+       LDR r1, [r1]
+       BL totient
+       CMP r0, #-1
+       BNE primesValidated
+           LDR r0, =primeError
+           BL printf
+           B promptPrimesLoop
+ 
+       primesValidated:
+       MOV r4, r0
+
+    # public exponent loop
+    promptPubKeyLoop:
+        LDR r0, =promptE
+        BL printf
+
+        # save e
+        LDR r0, =intFmt
+        LDR r1, =pubKey
+        BL scanf
+
+        # validate e
+        LDR r0, =pVal
+        LDR r0, [r0]
+        LDR r1, =qVal
+        LDR r1, [r1]
+        LDR r2, =pubKey
+        LDR r2, [r2]
+        BL cpubexp
+        # loop if bad value
+        CMP r0, #-1
+        BNE pubKeyValidated
+            LDR r0, =pubKeyError
+            MOV r1, r4
+            MOV r2, r4
+            BL printf
+            B promptPubKeyLoop
+
+        pubKeyValidated:
+    
+    # calculate private key
+    LDR r0, =pubKey
+    LDR r0, [r0]
+    MOV r1, r4
+    BL cprivexp
+    MOV r5, r0
+
+    # get modulus
+    LDR r0, =pVal
+    LDR r0, [r0]
+    LDR r1, =qVal
+    LDR r1, [r1]
+    MUL r1, r0, r1
+
+    # print keys
+    LDR r0, =displayMod
+    BL printf
+
+    LDR r0, =displayPubKey
+    LDR r1, =pubKey
+    LDR r1, [r1]
+    BL printf
+
+    LDR r0, =displayPrivKey
+    MOV r1, r5
+    BL printf
+
+    POP {r4, r5, pc}
+.data
+    introPrompt: .asciz "\n=== Small key size RSA generation ===\nPlease prepare the following information:\n- Positive integers P and Q such that P & Q are both prime\n- Public key value e s.t. 1 < e < Φ(n) and e is co-prime to Φ(n) [ gcd(e, Φ(n)) = 1 ]\n"
+    intFmt: .asciz "%d"
+    pVal: .word 0
+    qVal: .word 0
+    promptP: .asciz "Enter first prime: "
+    promptQ: .asciz "Enter second prime: "
+    primeError: .asciz "ERROR: One of the given integers was not prime\n"
+    pubKey: .word 0
+    promptE: .asciz "Enter desired public key: "
+    pubKeyError: .asciz "ERROR: Invalid public key\nMust be between 1 and %d and coprime to %d\n"
+    displayMod: .asciz "Modulus: %d\n"
+    displayPubKey: .asciz "Public Key: %d\n"
+    displayPrivKey: .asciz "Private Key: %d\n"
+
+# START encrypt
+.global encrypt
+# Function: encrypt
+# Purpose:  Encrypts a message given public key and modulus
+.text
+encrypt:
+     PUSH {r4, r5, lr}
+
+     # get public key
+     LDR r0, =promptPubKey
+     BL printf
+
+     LDR r0, =intFmt
+     LDR r1, =publicKey
+     BL scanf
+
+     # get modulus
+     LDR r0, =promptModulus
+     BL printf
+
+     LDR r0, =intFmt
+     LDR r1, =modulus
+     BL scanf
+
+     # clear stdin
+     clearStdin:
+         BL getchar
+         CMP r0, #'\n'
+         BEQ cont
+         CMP r0, #-1
+         BEQ cont
+         B clearStdin
+     cont:
+
+     # prompt text
+     LDR r0, =promptText
+     BL printf
+
+     # allocate memory
+     MOV r0, #255
+     BL malloc
+
+     # scan from console
+     MOV r1, #255
+     LDR r2, =stdin
+     LDR r2, [r2]
+     BL fgets
+
+     MOV r4, r0
+
+     # get string length
+     # subtract one to remove added new line character from fgets
+     BL strlen
+     SUB r5, r0, #1
+
+     # convert string to array
+     MOV r0, r4
+     MOV r1, r5
+     BL stringToArray
+
+     # encrypt array
+     LDR r2, =publicKey
+     LDR r2, [r2]
+     LDR r3, =modulus
+     LDR r3, [r3]
+     BL processArray
+
+     # write array to file
+     MOV r2, r1
+     MOV r1, r0
+     LDR r0, =fileName
+     BL writeArray
+
+     # print message
+     LDR r0, =encryptionDone
+     BL printf
+
+     POP {r4, r5, pc}
+.data
+     promptPubKey: .asciz "Enter public key: "
+     publicKey: .word 0
+     promptModulus: .asciz "Enter modulus: "
+     modulus: .word 0
+     promptText: .asciz "Enter text to encrypt: "
+     fileName: .asciz "encrypted.txt"
+     encryptionDone: .asciz "Encrypted text is in encrypted.txt\n"
+
+# START decrypt
+.global decrypt
+# Function: decrypt
+# Purpose:  Decrypts a message from encrypted.txt given private key and modulus
+.text
+decrypt:
+     PUSH {r4, r5, lr}
+
+     # get public key
+     LDR r0, =promptPrivKey
+     BL printf
+
+     LDR r0, =intFmt
+     LDR r1, =privateKey
+     BL scanf
+
+     # get modulus
+     LDR r0, =promptModulus
+     BL printf
+
+     LDR r0, =intFmt
+     LDR r1, =modulus
+     BL scanf
+
+     # read array
+     LDR r0, =fileName
+     BL readArray
+
+     # decrypt array
+     LDR r2, =privateKey
+     LDR r2, [r2]
+     LDR r3, =modulus
+     LDR r3, [r3]
+     BL processArray
+
+     # convert array to string
+     BL arrayToString
+     MOV r1, r0
+     LDR r0, =plaintextFileName
+     BL writeFile
+
+     # print done message
+     LDR r0, =decryptionDone
+     BL printf
+
+     POP {r4, r5, pc} 
+.data
+     promptPrivKey: .asciz "Enter private key: "
+     privateKey: .word 0
+     plaintextFileName: .asciz "plaintext.txt"
+     decryptionDone: .asciz "Decrypted text is in plaintext.txt\n"

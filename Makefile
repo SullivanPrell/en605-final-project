@@ -3,11 +3,17 @@ OUTPUT=bin/rsa
 
 all: $(OUTPUT)
 
-$(OUTPUT): bin/libMath.o bin/main.o
+$(OUTPUT): bin/main.o bin/libIO.o bin/libMath.o bin/libRSA.o 
 	$(CC) $(LDFLAGS) -g -o $@ $^
 
 bin/main.o: main.s
 	$(CC) $(CFLAGS) -g -c -o $@ $<
 
 bin/libMath.o: libMath.s
+	$(CC) $(CFLAGS) -g -c -o $@ $<
+
+bin/libIO.o: libIO.s
+	$(CC) $(CFLAGS) -g -c -o $@ $<
+
+bin/libRSA.o: libRSA.s
 	$(CC) $(CFLAGS) -g -c -o $@ $<

@@ -1,50 +1,52 @@
 .text
 .global main
 main:
-     # push the stack
-     SUB sp, sp, #4
-     STR lr, [sp]
+     PUSH {r4, r5, r6, lr}
 
-     # prompt for first integer
-     LDR r0, =prompt1
+     # prompt user
+     LDR r0, =promptAction
      BL printf
 
-     # scan for input
-     LDR r0, =format
-     LDR r1, =a
+     # get user choice
+     LDR r0, =intFmt
+     LDR r1, =actionChoice
      BL scanf
 
-     # prompt for second integer
-     LDR r0, =prompt2
-     BL printf
-
-     # scan for input
-     LDR r0, =format
-     LDR r1, =b
-     BL scanf
-
-     # compute gcd
-     LDR r0, =a
+     # respond to choice
+     LDR r0, =actionChoice
      LDR r0, [r0]
-     LDR r1, =b
-     LDR r1, [r1]
-     BL pow
+     CMP r0, #1
+     BNE Else1
+         BL generateKeys
+         B EndIf
 
-     # print output
-     MOV r1, r0
-     LDR r0, =output
-     BL printf
+     Else1:
+         CMP r0, #2
+         BNE Else2
+             BL encrypt
+             B EndIf
 
-     # pop the stack
-     LDR lr, [sp]
-     ADD sp, sp, #4
-     MOV pc, lr
+         Else2:
+             CMP r0, #3
+             BNE Else3
+                 BL decrypt
+                 B EndIf
 
+             Else3:
+                 B inputError
+     EndIf:
+     B exit
+
+     inputError:
+          LDR r0, =errorMsg
+          BL printf
+          B exit
+
+     exit:
+     POP {r4, r5, r6, pc}
 .data
-     prompt1: .asciz "Enter first integer a: "
-     prompt2: .asciz "Enter second integer b: "
-     format:  .asciz "%d"
-     a:       .word 0
-     b:       .word 0
-     output:  .asciz "pow(a,b) = %d\n"
-#END main
+     intFmt: .asciz "%d"
+     errorMsg: .asciz "\nError: invalid selection \n"
+     promptAction: .asciz "\Please enter:\n1 - to generate keys\n2 - to encrypt plaintext\n3 - to decrypt ciphertext\nSelection: "
+     actionChoice: .word 0
+# END main

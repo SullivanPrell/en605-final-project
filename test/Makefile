@@ -12,7 +12,7 @@ SHARED_LIB_RSA=libRSA.so
 all: $(SHARED_LIB_RSA)
 
 # Create shared library
-$(SHARED_LIB_RSA): libMath.o libRSA.o
+$(SHARED_LIB_RSA): libMath.o libRSA.o libIO.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 # Create shared library
@@ -27,11 +27,16 @@ libMath.o: ../libMath.s
 libRSA.o: ../libRSA.s
 	$(CC) $(CFLAGS) -g -c -o $@ $<
 
+# Compile libIO object file
+libIO.o: ../libIO.s
+	$(CC) $(CFLAGS) -g -c -o $@ $<
+
 # Remove artifacts from building asm and rust
 # Forces recompiling when running tests, comment the 2nd line to skip this step
 clean: 
 	rm -f *.o *.so *.a
 	rm -rf target
+	rm -f *.txt
 
 # Make project and run tests
 test:
