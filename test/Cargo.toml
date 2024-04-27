@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 libloading = "0.8"
 lipsum = "0.9"
+libc = "0.2"
