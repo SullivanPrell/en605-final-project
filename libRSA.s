@@ -87,13 +87,11 @@ cprivexp:
 # END cprivexp
 
 .global cpubexp
-#
 # Function: cpubexp
 # Purpose:  Validates the public exponent s.t. 1 < e < Φ(n) and e is co-prime to Φ(n) [ gcd(e, Φ(n)) = 1 ]
 # Input: r0 = p, r1 = q, r2 = e
 # Output: r0 = pub exponent
 # Output: r0 = -1 error
-#
 .text
 cpubexp:
     PUSH {r4, r5, r6, lr}
@@ -203,7 +201,7 @@ process:
      MOV pc, lr
 
 .data
-# END process Φ(n) 
+# END process
 
 .global processArray
 # Function: processArray
@@ -274,8 +272,8 @@ processArray:
      MOV pc, lr
 
 .data
+# END processArray
 
-# START generateKeys
 .global generateKeys
 
 # Function: generateKeys
@@ -393,8 +391,8 @@ generateKeys:
     displayMod: .asciz "Modulus: %d\n"
     displayPubKey: .asciz "Public Key: %d\n"
     displayPrivKey: .asciz "Private Key: %d\n"
+# END generateKeys
 
-# START encrypt
 .global encrypt
 # Function: encrypt
 # Purpose:  Encrypts a message given public key and modulus
@@ -480,8 +478,8 @@ encrypt:
      promptText: .asciz "Enter text to encrypt: "
      fileName: .asciz "encrypted.txt"
      encryptionDone: .asciz "Encrypted text is in encrypted.txt\n"
+# END encrypt
 
-# START decrypt
 .global decrypt
 # Function: decrypt
 # Purpose:  Decrypts a message from encrypted.txt given private key and modulus
@@ -532,3 +530,4 @@ decrypt:
      privateKey: .word 0
      plaintextFileName: .asciz "plaintext.txt"
      decryptionDone: .asciz "Decrypted text is in plaintext.txt\n"
+# END decrypt

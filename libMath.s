@@ -87,34 +87,6 @@ mod:
      MOV pc, lr
 # END mod
 
-.global pow
-# Function: pow - base r0, exponent r1: r0^r1
-# Purpose:  Power calculation for an integer base r0 to the integer r1 exponent
-# Input:    r0 - integer base
-#           r1 - integer exponent
-# Output:   r0 - return: pow value
-pow:
-     # push stack
-     SUB sp, sp, #4
-     STR lr, [sp]
-     # fence post
-     MOV r2, r0     @ move base -> r2
-     SUB r1, r1, #1 @ r1--
-
-powLoop:
-     CMP r1, #0     @ Check if we're done
-     BEQ endPow     @ break
-     MUL r0, r2, r0 @ r0 * r2
-     SUB r1, r1, #1 @ r1--
-     B powLoop      @ cont.
-
-endPow:
-     # pop stack
-     LDR lr, [sp]
-     ADD sp, sp, #4
-     MOV pc, lr
-# END pow
-
 .global isPrime
 # Function: isPrime
 # Purpose:  Determines if a number is prime
@@ -175,16 +147,15 @@ isPrime:
      LDR lr, [sp]
      ADD sp, sp, #4
      MOV pc, lr
+# END isPrime
 
-.global totient
-# 
+.global totient 
 # Function: Totient calculation Φ(n) = (p – 1) (q – 1) s.t. p & q are prime
 # Purpose:  Calculate and return totient
 # Input:    r0 - p
 #           r1 - q
 # Output:   r0 - return: totient value of (n)
 # Output:   r0 == -1 if p or q are NOT prime (error)
-#
 totient:
      PUSH {r4, r5, lr}
 
@@ -219,19 +190,4 @@ totient:
      
      endTotient:
     POP {r4, r5, pc}
-
-.global pqMod
-# 
-# Function: pqMod
-# Purpose:  Specific mod calculation for p & q == ( p * q )
-# Input:    r0 - p
-#           r1 - q
-# Output:   r0 - return: mod(p,q)
-#
-pqMod:
-     PUSH {lr}
-     MUL r2, r0, r1
-     MOV r0, r2
-     POP {pc}
-
-.data
+# END totient

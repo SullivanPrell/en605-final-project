@@ -1,3 +1,9 @@
+# File Name:   main.s
+# Programmers: Rohan Abraham, Sullivan Prellwitz, Tero Suontaka
+# Purpose:     Runs RSA encryption and decryption algorithm
+# Functions:   Public and private key generation
+#              Encryption of ASCII characters into integers
+#              Decryption of integers into ASCII characters
 .text
 .global main
 main:
@@ -17,22 +23,26 @@ main:
      LDR r0, [r0]
      CMP r0, #1
      BNE Else1
+         # choice = 1
          BL generateKeys
          B EndIf
 
      Else1:
          CMP r0, #2
          BNE Else2
+             # choice = 2
              BL encrypt
              B EndIf
 
          Else2:
              CMP r0, #3
              BNE Else3
+                 # choice = 3
                  BL decrypt
                  B EndIf
 
              Else3:
+                 # invalid choice
                  B inputError
      EndIf:
      B exit
