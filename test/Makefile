@@ -12,7 +12,7 @@ SHARED_LIB_RSA=libRSA.so
 all: $(SHARED_LIB_RSA)
 
 # Create shared library
-$(SHARED_LIB_RSA): libMath.o libRSA.o libIO.o
+$(SHARED_LIB_RSA): libMath.o libRSA.o libIO.o testHelper.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 # Create shared library
@@ -29,6 +29,10 @@ libRSA.o: ../libRSA.s
 
 # Compile libIO object file
 libIO.o: ../libIO.s
+	$(CC) $(CFLAGS) -g -c -o $@ $<
+
+# Compile testHelper object file
+testHelper.o: testHelper.s
 	$(CC) $(CFLAGS) -g -c -o $@ $<
 
 # Remove artifacts from building asm and rust
