@@ -146,12 +146,12 @@ mod tests {
     }
 
     #[test]
-    fn decrpyt_expect_true() {
+    fn decrypt_expect_true() {
         unsafe {
             let lib_rsa = Library::new("./libRSA.so").unwrap();
-            let decrpyt = lib_rsa.get::<Symbol<extern "C" fn() -> i32>>(b"decrypt_expect_true_helper").unwrap();
+            let decrypt = lib_rsa.get::<Symbol<extern "C" fn() -> i32>>(b"decrypt_expect_true_helper").unwrap();
             
-            let result = decrpyt();
+            let result = decrypt();
             assert_eq!(result, 15);
             let file_contents = fs::read_to_string("plaintext-decrypt_expect_true_helper.txt").expect("Should have been able to read the file");
             assert_eq!(file_contents, "104 101 108 108 111 32 112 108 97 105 110 116 101 120 116 ");

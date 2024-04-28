@@ -214,14 +214,29 @@ Implement a modular design for all functions and create a library of assembly co
 \setmainfont{OpenSans-VariableFont_wdth,wght.ttf}[Path=assets/]
 \section{Testability}
 \setmainfont{OpenSans-VariableFont_wdth,wght.ttf}[Path=assets/]
-    The individual components of the RSA implementation will be tested using a test script per function.
-    These test scripts will cover normal, edge, and absurd cases in order to ensure proper functionality.
-    The test scripts will be able to be run all at once using a control script.
-    \\
-    Test scripts will be help within a \verb|/tests| folder within the project repository and will take the form
-    \begin{verbatim}
-        {function_name}-tests.{file_extension}
-    \end{verbatim}
+    To facilitate easy testing the majority of functions are called directly in the Rust project located
+    in the \verb|/tests| directory. This project is made up of three main parts:
+    \begin{enumerate}
+        \item \verb|lib.rs| - the test library in rust
+        \item \verb|testHelper.s| - an arm assembly helper file for the test library
+        \item \verb|Makefile| - the Makefile is responsible for building and linking all related assembly code to a shared library  \verb|libRSA.so|
+    \end{enumerate}
+    \subsection{Notes on the test project:}
+    \begin{itemize}
+        \item Throughout the test project a public key, private key, and modulus value that are referenced. These values are as follows:
+        \begin{itemize}
+            \item \verb|pubkey: 557|
+            \item \verb|privkey: 1493|
+            \item \verb|mod: 1763|
+        \end{itemize}
+        \item Text files created by the test project will live within the \verb|test/| directory
+        \item For tests using a plaintext the string used is \verb|hello plaintext|
+        \item For tests using an array version of the plaintext the string remains the same and the array values are base 10 integers representing character ASCII value
+        \item For tests using a ciphertext the array values provided in the tests are derived from the above plaintext, pub/priv key, and mod values
+        \item To circumvent problems with memory management and lifetime all arrays are dealt with through files to ensure correctness
+        \item For information on compiling and running the tests please see the \verb|README.md| in the \verb|test/| directory
+    \end{itemize}
+    
 \newpage
 
 \setmainfont{OpenSans-VariableFont_wdth,wght.ttf}[Path=assets/]
