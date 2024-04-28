@@ -16,3 +16,9 @@ All calculations are done in 32 bit signed integers, so modulus sizes larger tha
 Encryption is done character by character and writes to bin/encrypted.txt.
 
 Decryption reads from the created encrypted.txt file and requires the format of the message to be integers with whitespace between them.
+
+To create the submission archive please run `make submission` NOTE: before doing this please change the archive name to match your JHU ID, please do the same with all the files within the `submission-dir` directory.
+
+The design document and all of its assets are located in `docs/design_doc`and is written in LaTeX.
+
+See the `README.md` file in the `test` directory for notes on the test project
