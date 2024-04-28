@@ -33,3 +33,4 @@ Cargo.lock
 *.gz
 *.toc
 *.xdv
+*.out
