@@ -6,7 +6,11 @@
 \usepackage{fontspec}
 \usepackage{tocloft}
 \usepackage{titletoc}
-\usepackage{lipsum}  
+\usepackage{lipsum}
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{4}
+
 
 \setmainfont{OpenSans-VariableFont_wdth,wght.ttf}[Path=assets/]
 
@@ -18,7 +22,7 @@
 
 \vspace{7.5cm}
 
-\Huge Team 1 EN.605.204.81 \\ ARM32 RSA Design Document
+\Huge Team 1 EN.605.204.81 \\ ARM32 RSA Design Document V2
 
 \vspace{0.5cm}
 
@@ -26,7 +30,7 @@
 
 \vspace{8cm}
 
-\normalsize March 03, 2024
+\normalsize April 28, 2024
 
 \end{flushright}
 
@@ -51,48 +55,160 @@ Implement a modular design for all functions and create a library of assembly co
 \includegraphics[scale=0.44]{assets/rsa-impl.drawio.png}
 \section{Functions}
 \setmainfont{OpenSans-VariableFont_wdth,wght.ttf}[Path=assets/]
-    \subsection{gcd (Greatest Common Divisor)}
-    Input: 2 integer values.
-    \\
-    Output: The greatest common divisor of the input integers.
-    \\
-    \subsection{pow}
-    Input: 2 integer values, base \(b\) and an exponent \(e\).
-    \\
-    Output: \(b^e\)
-    \\
-    \subsection{mod (Modulo)}
-    Input: 2 integers \(a\) and \(b\).
-    \\
-    Output: \(a \bmod b\)
-    \\
-    \subsection{tot (Totient Calculation)}
-    Input: 2 prime numbers \(p\) and \(q\).
-    \\
-    Output: \(\phi (n) = (p-1)(q-1)\)
-    \\
-    \subsection{cpubexp (Calculation of public key exponent)}
-    Input: 2 prime numbers \(p\) and \(q\), and an exponent \(e\) such that \(e\) is an integer
-    and is not a factor of \(\phi (n) \) and \(1 < e < \phi (n)\).
-    \\
-    Output: Public key exponent.
-    \\
-     \subsection{cprivexp (Calculation of private key exponent)}
-    Input: \(e\), \(\phi (n)\) an integer \(x\).
-    and is not a factor of \(\phi (n) \) and \(1 < e < \phi (n)\)
-    \\
-    Output: Private key exponent.
-    \\
-    \subsection{encrypt}
-    Input: An ASCII string plaintext to be encrypted and associated public key \(pubKey\).
-    \\
-    Output: ASCII string ciphertext
-    \\
-     \subsection{decrypt}
-    Input: An ASCII string ciphertext and associated private key \(privKey\).
-    \\
-    Output: ASCII string plaintext
-    \\
+    \subsection{libIO.s}
+        \subsubsection{stringToArray}
+        \paragraph*{Purpose:}
+            {Converts a string (byte array) to an array of 32 bit integers \\ }
+            input:\begin{itemize}
+                \item r0 - pointer to string
+                \item r1 - size of string
+            \end{itemize}
+            Output:\begin{itemize}
+                \item r0 - pointer to integer
+                \item r1 - size of array
+            \end{itemize}
+            
+        \subsubsection{arrayToString}
+        \paragraph*{Purpose:}
+            {Converts an integer array to a null delimited string \\ }
+            input:\begin{itemize}
+                \item r0 - pointer to integer array
+                \item r1 - size of array
+            \end{itemize}
+            Output:\begin{itemize}
+                \item r0 - pointer to string
+                \item r1 - size of string
+            \end{itemize}
+
+        \subsubsection{writeFile}
+        \paragraph*{Purpose:}
+            {Write to a file, name provided by user \\ }
+            input:\begin{itemize}
+                \item r0 - name of file to write
+                \item r1 - pointer to message to write
+            \end{itemize}
+            
+        \subsubsection{writeArray}
+        \paragraph*{Purpose:}
+            {Write 32 bit integer array to a file \\ }
+            input:\begin{itemize}
+                \item r0 - pointer to string
+                \item r1 - pointer to message to write
+                \item r2 - length of string
+            \end{itemize}
+
+        \subsubsection{readArray}
+        \paragraph*{Purpose:}
+            {Read file to 32 bit integer array \\ }
+            input:\begin{itemize}
+                \item r0 - name of file to read
+            \end{itemize}
+            Output:\begin{itemize}
+                \item r0 - pointer to array
+                \item r1 - array length
+            \end{itemize}
+    \subsection{libMath.s}
+        \subsubsection{gcd}
+            \paragraph*{Purpose:}
+                {Computes the greatest common divisor of two integers \\ }
+                input:\begin{itemize}
+                    \item r0 - first integer to compute gcd of
+                    \item r1 - second integer to compute gcd of
+                \end{itemize}
+                Output:\begin{itemize}
+                    \item r0 - greatest common divisor of two input integers
+                \end{itemize}
+        \subsubsection{mod}
+            \paragraph*{Purpose:}
+                {Modulo calculation: r0 mod r1 = r0 \\ }
+                input:\begin{itemize}
+                    \item r0 - first integer to compute modulo
+                    \item r1 - second integer to compute modulo
+                \end{itemize}
+                Output:\begin{itemize}
+                    \item r0 - modulo value
+                \end{itemize}
+        \subsubsection{isPrime}
+            \paragraph*{Purpose:}
+                {Determines if a number is prime \\ }
+                input:\begin{itemize}
+                    \item r0 - integer to test
+                \end{itemize}
+                Output:\begin{itemize}
+                    \item r0 - binary value indicating primality returns -1 for invalid values
+                \end{itemize}
+        \subsubsection{totient}
+            \paragraph*{Purpose:}
+                {Totient calculation Φ(n) = (p – 1) (q – 1) s.t. p and q are prime \\ }
+                input:\begin{itemize}
+                    \item r0 - p
+                    \item r1 - q
+                \end{itemize}
+                Output:\begin{itemize}
+                    \item r0 - return: totient value of (n) or r0 == -1 if p or q are NOT prime (error)
+                \end{itemize}
+    \subsection{libRSA.s}
+        \subsubsection{cprivexp}
+            \paragraph*{Purpose:}
+                {Calculates the private exponent. Calculates multiplicative inverse of public key over ring of integers mod n \\}
+                input:\begin{itemize}
+                    \item r0 - public exponent (e)
+                    \item r1 - integer such that gcd(r0,r1) = 1 (phi(n))
+                \end{itemize}
+                Output:\begin{itemize}
+                    \item r0 - private exponent returns -1 if gcd(r0,r1) != 1
+                \end{itemize}
+        \subsubsection{cpubexp}
+            \paragraph*{Purpose:}
+                {Validates the public exponent s.t. 1 < e < Φ(n) and e is co-prime to Φ(n) [ gcd(e, Φ(n)) = 1 ] \\}
+                input:\begin{itemize}
+                    \item r0 - p
+                    \item r1 - q
+                    \item r2 - e
+                \end{itemize}
+                Output:\begin{itemize}
+                    \item r0 - pub exponent or -1 if error
+                \end{itemize}
+        \subsubsection{process}
+            \paragraph*{Purpose:}
+                {Processes the input for RSA encryption and decryption. For encryption, use private key as exponent. For decryption, use public key as exponent \\}
+                input:\begin{itemize}
+                    \item r0 - integer base a
+                    \item r1 - integer exponent b
+                    \item r2 - integer modulus n
+                \end{itemize}
+                Output:\begin{itemize}
+                    \item r0 - a \^{}  b mod n
+                \end{itemize}
+        \subsubsection{processArray}
+            \paragraph*{Purpose:}
+                {Processes an integer array for RSA encryption and decryption. Applies a\^{}b mod n for all a in array. \\}
+                input:\begin{itemize}
+                    \item r0 - pointer to integer array
+                    \item r1 - size of array
+                    \item r2 - integer exponent b
+                    \item r3 - integer modulus n
+                \end{itemize}
+                Output:\begin{itemize}
+                    \item r0 - pointer to processed integer array
+                    \item r1 - size of array
+                \end{itemize}
+
+        \subsubsection{generateKeys}
+            \paragraph*{Purpose:}
+                {Prompt user for primes and public exponent and generate private key \\}
+
+        \subsubsection{encrypt}
+            \paragraph*{Purpose:}
+                {Encrypts a message given user input public key and modulus and writes to encrypted.txt \\}
+        \subsubsection{decrypt}
+            \paragraph*{Purpose:}
+                {Decrypts a message from encrypted.txt given user input private key and modulus and writes plaintext to plaintext.txt\\}
+        
+    \subsection{main.s}
+        \subsubsection{main}
+        \paragraph*{Purpose:}
+                {Drives the generation of keys, encryption, and decryption }
 \newpage
 
 \setmainfont{OpenSans-VariableFont_wdth,wght.ttf}[Path=assets/]
