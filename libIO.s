@@ -333,7 +333,7 @@ readArray:
 .data
     readFormat: .asciz "%d"
     num: .word 0
-    fileOpModeRead: .asciz "r"
+    fileOpModeRead: .asciz "r+"
     errReadNullFileMsg: .asciz "ERROR: NULL FILE\n"
 # END readArray
 

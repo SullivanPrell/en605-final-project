@@ -5,6 +5,9 @@ use std::os::raw::c_char;
 use std::env;
 use std::fs;
 use lipsum::lipsum;
+use std::fs::File;
+use std::io::prelude::*;
+use std::arch::asm;
 
 #[cfg(test)]
 mod tests {
@@ -27,6 +30,7 @@ mod tests {
         unsafe { // this is marked unsafe since we are calling functions external to rust
             let lib_math = Library::new("./libRSA.so").unwrap(); // Get the library
             let gcd = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"gcd").unwrap(); // get specific function
+            
             let result = gcd(46, 23); // call the function
             let result1 = gcd(450, 125); // call the function
              // assert that the result is equivalent to the vlaue on the right 
@@ -41,6 +45,7 @@ mod tests {
         unsafe {
             let lib_math = Library::new("./libRSA.so").unwrap();
             let pq_mod = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pqMod").unwrap();
+            
             let result = pq_mod(2, 2);
             assert_eq!(result, 4);
             let result1 = pq_mod(22, 3);
@@ -53,6 +58,7 @@ mod tests {
         unsafe {
             let lib_math = Library::new("./libRSA.so").unwrap();
             let pow = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pow").unwrap();
+            
             let result = pow(2, 2);
             assert_eq!(result, 4);
             let result1 = pow(22, 3);
@@ -65,6 +71,7 @@ mod tests {
         unsafe {
             let lib_math = Library::new("./libRSA.so").unwrap();
             let is_prime = lib_math.get::<Symbol<extern "C" fn(i32) -> i32>>(b"isPrime").unwrap();
+            
             let result = is_prime(17);
             let result1 = is_prime(11);
             assert_eq!(result, 1);
@@ -77,6 +84,7 @@ mod tests {
         unsafe {
             let lib_math = Library::new("./libRSA.so").unwrap();
             let is_prime = lib_math.get::<Symbol<extern "C" fn(i32) -> i32>>(b"isPrime").unwrap();
+            
             let result = is_prime(22);
             let result1 = is_prime(90);
             assert!(result < 1, "is prime broken");
@@ -89,6 +97,7 @@ mod tests {
         unsafe {
             let lib_math = Library::new("./libRSA.so").unwrap();
             let totient = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"totient").unwrap();
+            
             let result = totient(73, 97);
             let result1 = totient(197, 1997);
             assert_eq!(result, 6912);
@@ -101,6 +110,7 @@ mod tests {
         unsafe {
             let lib_math = Library::new("./libRSA.so").unwrap();
             let totient = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"totient").unwrap();
+            
             let result = totient(72, 96);
             let result1 = totient(44, 26);
             assert_eq!(result, -1);
@@ -117,6 +127,7 @@ mod tests {
         unsafe {
             let lib_rsa = Library::new("./libRSA.so").unwrap();
             let cpubexp = lib_rsa.get::<Symbol<extern "C" fn(i32, i32, i32) -> i32>>(b"cpubexp").unwrap();
+            
             let result = cpubexp(41, 43, 557); // p = 41 | q = 43 | e = 557
             assert_eq!(result , 557);
         }
@@ -128,8 +139,35 @@ mod tests {
             let lib_rsa = Library::new("./libRSA.so").unwrap();
             let cpubexp = lib_rsa.get::<Symbol<extern "C" fn(i32, i32, i32) -> i32>>(b"cpubexp").unwrap();
             let cprivexp = lib_rsa.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"cprivexp").unwrap();
+            
             let result = cprivexp(cpubexp(41, 43, 557), 2); 
             assert!(result != -1, "private exponent is incorrect got {}", result);
+        }
+    }
+
+    #[test]
+    fn decrpyt_expect_true() {
+        unsafe {
+            let lib_rsa = Library::new("./libRSA.so").unwrap();
+            let decrpyt = lib_rsa.get::<Symbol<extern "C" fn() -> i32>>(b"decrypt_expect_true_helper").unwrap();
+            
+            let result = decrpyt();
+            assert_eq!(result, 15);
+            let file_contents = fs::read_to_string("plaintext-decrypt_expect_true_helper.txt").expect("Should have been able to read the file");
+            assert_eq!(file_contents, "104 101 108 108 111 32 112 108 97 105 110 116 101 120 116 ");
+        }
+    }
+
+    #[test]
+    fn encrypt_expect_true() {
+        unsafe {
+            let lib_rsa = Library::new("./libRSA.so").unwrap();
+            let process_array = lib_rsa.get::<Symbol<extern "C" fn() -> (i32)>>(b"encrypt_expect_true_helper").unwrap();
+
+            let result = process_array();
+            assert_eq!(result, 15);
+            let file_contents = fs::read_to_string("encrypted-encrypt_expect_true_helper.txt").expect("Should have been able to read the file");
+            assert_eq!(file_contents, "263 762 309 309 1715 237 1094 309 1741 373 1218 235 762 3 235 ");
         }
     }
 
@@ -158,58 +196,61 @@ mod tests {
     }
 
     #[test]
+    fn read_array_expect_true() {
+        let mut file = File::create("encrypted-read_array_expect_true.txt").expect("Error couldn't create file");
+        file.write_all(b"263 762 309 309 1715 237 1094 309 1741 373 1218 235 762 3 235  ").expect("Error couldn't write to file");
+        unsafe {
+            let lib_rsa = Library::new("./libRSA.so").unwrap();
+            let read_array = lib_rsa.get::<Symbol<extern "C" fn() -> i32>>(b"read_array_expect_true_helper").unwrap();
+            
+            read_array();
+            let file_contents = fs::read_to_string("encrypted-read_array_expect_true_helper.txt").expect("Should have been able to read the file");
+            assert_eq!(file_contents, "263 762 309 309 1715 237 1094 309 1741 373 1218 235 762 3 235 ")
+        }
+    }
+
+    #[test]
+    fn write_array_expect_true() {
+        unsafe {
+            let lib_rsa = Library::new("./libRSA.so").unwrap();
+            let write_array = lib_rsa.get::<Symbol<extern "C" fn(*const c_char, &[i32], i32)>>(b"writeArray").unwrap();
+
+            let file_name = CString::new("writeArray-tst.txt").expect("CString::new failed");
+            let char_ptr_fname: *const c_char = file_name.as_ptr();
+            let test_array: [i32; 15] = [389,407,432,432,484,342,142,432,411,447,383,182,407,426,182];
+            write_array(char_ptr_fname, &test_array, 15);
+            let file_contents = fs::read_to_string("writeArray-tst.txt").expect("Should have been able to read the file");
+            assert_eq!(file_contents, "389 407 432 432 484 342 142 432 411 447 383 182 407 426 182 ");
+        }
+    }
+
+    #[test]
     fn write_to_file_expect_true() {
         unsafe {
             let lib_rsa = Library::new("./libRSA.so").unwrap();
-            
             let write_file = lib_rsa.get::<Symbol<extern "C" fn(*const c_char, *const c_char)>>(b"writeFile").unwrap();
     
-            let file_name = CString::new("testWrite.txt").expect("CString::new failed");
+            let file_name = CString::new("testWrite-tst.txt").expect("CString::new failed");
             let char_ptr_fname: *const c_char = file_name.as_ptr();
             let message = CString::new("writing some text to a file!!!!!").expect("CString::new failed");
             let char_ptr_message: *const c_char = message.as_ptr();
 
             write_file(char_ptr_fname, char_ptr_message);
-            let file_contents = fs::read_to_string("testWrite.txt").expect("Should have been able to read the file");
+            let file_contents = fs::read_to_string("testWrite-tst.txt").expect("Should have been able to read the file");
             assert_eq!(file_contents, "writing some text to a file!!!!!");
         }
     }
 
     #[test]
-    fn read_from_message_file_expect_true() {
+    fn string_to_array_expect_true() {
         unsafe {
-            let lorem = lipsum(25);
             let lib_rsa = Library::new("./libRSA.so").unwrap();
-            
-            let read_file = lib_rsa.get::<Symbol<extern "C" fn(*const c_char) -> *const c_char>>(b"readMessageFile").unwrap();
+            let string_to_array = lib_rsa.get::<Symbol<extern "C" fn()>>(b"string_to_array_expect_true_helper").unwrap();
     
-            let file_name = CString::new("testRead.txt").expect("CString::new failed");
-            let char_ptr_fname: *const c_char = file_name.as_ptr();
-
-            fs::write("testRead.txt", lorem.clone()).expect("Unable to write file");
-
-            let file_contents = read_file(char_ptr_fname);
-            // Convert C string (file contents) to Rust String
-            let c_string = CStr::from_ptr(file_contents);
-            let result = c_string.to_string_lossy().into_owned();
-            assert_eq!(result, lorem.clone());
+            string_to_array();
+            let file_contents = fs::read_to_string("stringToArray-string_to_array_expect_true_helper.txt").expect("Should have been able to read the file");
+            assert_eq!(file_contents, "104 101 108 108 111 32 112 108 97 105 110 116 101 120 116 ");
         }
     }
-
-    // TODO: need to fix this its broken
-    // #[test]
-    // fn string_to_array_expect_true() {
-    //     unsafe {
-    //         let lib_rsa = Library::new("./libRSA.so").unwrap();
-    //         let string_to_array = lib_rsa.get::<Symbol<extern "C" fn(*const c_char) -> ([i32], i32)>>(b"stringToArray").unwrap();
-    
-    //         let c_string = CString::new("Another string").expect("CString::new failed");
-    //         let char_ptr: *const c_char = c_string.as_ptr();
-    
-    //         let result = string_to_array(char_ptr);
-    //         let test_array: [i32; 14] = [65, 110, 111, 116, 104, 101, 114, 32, 115, 116, 114, 105, 110, 103];
-    //         assert_eq!(result.0, test_array);
-    //     }
-    // }
     /* libIO test END */
 }
