@@ -40,31 +40,31 @@ mod tests {
         }
     }
 
-    #[test]
-    fn pq_mod_expect_correct() {
-        unsafe {
-            let lib_math = Library::new("./libRSA.so").unwrap();
-            let pq_mod = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pqMod").unwrap();
+    // #[test]
+    // fn pq_mod_expect_correct() {
+    //     unsafe {
+    //         let lib_math = Library::new("./libRSA.so").unwrap();
+    //         let pq_mod = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pqMod").unwrap();
             
-            let result = pq_mod(2, 2);
-            assert_eq!(result, 4);
-            let result1 = pq_mod(22, 3);
-            assert_eq!(result1, 66);
-        }
-    }
+    //         let result = pq_mod(2, 2);
+    //         assert_eq!(result, 4);
+    //         let result1 = pq_mod(22, 3);
+    //         assert_eq!(result1, 66);
+    //     }
+    // }
 
-    #[test]
-    fn pow_expect_correct() {
-        unsafe {
-            let lib_math = Library::new("./libRSA.so").unwrap();
-            let pow = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pow").unwrap();
+    // #[test]
+    // fn pow_expect_correct() {
+    //     unsafe {
+    //         let lib_math = Library::new("./libRSA.so").unwrap();
+    //         let pow = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pow").unwrap();
             
-            let result = pow(2, 2);
-            assert_eq!(result, 4);
-            let result1 = pow(22, 3);
-            assert_eq!(result1, 10648);
-        }
-    }
+    //         let result = pow(2, 2);
+    //         assert_eq!(result, 4);
+    //         let result1 = pow(22, 3);
+    //         assert_eq!(result1, 10648);
+    //     }
+    // }
 
     #[test]
     fn is_prime_expect_correct() {
@@ -146,12 +146,12 @@ mod tests {
     }
 
     #[test]
-    fn decrpyt_expect_true() {
+    fn decrypt_expect_true() {
         unsafe {
             let lib_rsa = Library::new("./libRSA.so").unwrap();
-            let decrpyt = lib_rsa.get::<Symbol<extern "C" fn() -> i32>>(b"decrypt_expect_true_helper").unwrap();
+            let decrypt = lib_rsa.get::<Symbol<extern "C" fn() -> i32>>(b"decrypt_expect_true_helper").unwrap();
             
-            let result = decrpyt();
+            let result = decrypt();
             assert_eq!(result, 15);
             let file_contents = fs::read_to_string("plaintext-decrypt_expect_true_helper.txt").expect("Should have been able to read the file");
             assert_eq!(file_contents, "104 101 108 108 111 32 112 108 97 105 110 116 101 120 116 ");

@@ -25,3 +25,12 @@ Cargo.lock
 .idea
 
 *.txt
+
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.gz
+*.toc
+*.xdv
+*.out
