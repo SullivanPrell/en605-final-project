@@ -17,3 +17,6 @@ bin/libIO.o: libIO.s
 
 bin/libRSA.o: libRSA.s
 	$(CC) $(CFLAGS) -g -c -o $@ $<
+
+submission: 
+	tar -czvf ./sprellw1-en605-final-project.zip ./submission-dir
