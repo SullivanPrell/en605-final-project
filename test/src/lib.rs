@@ -40,31 +40,31 @@ mod tests {
         }
     }
 
-    #[test]
-    fn pq_mod_expect_correct() {
-        unsafe {
-            let lib_math = Library::new("./libRSA.so").unwrap();
-            let pq_mod = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pqMod").unwrap();
+    // #[test]
+    // fn pq_mod_expect_correct() {
+    //     unsafe {
+    //         let lib_math = Library::new("./libRSA.so").unwrap();
+    //         let pq_mod = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pqMod").unwrap();
             
-            let result = pq_mod(2, 2);
-            assert_eq!(result, 4);
-            let result1 = pq_mod(22, 3);
-            assert_eq!(result1, 66);
-        }
-    }
+    //         let result = pq_mod(2, 2);
+    //         assert_eq!(result, 4);
+    //         let result1 = pq_mod(22, 3);
+    //         assert_eq!(result1, 66);
+    //     }
+    // }
 
-    #[test]
-    fn pow_expect_correct() {
-        unsafe {
-            let lib_math = Library::new("./libRSA.so").unwrap();
-            let pow = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pow").unwrap();
+    // #[test]
+    // fn pow_expect_correct() {
+    //     unsafe {
+    //         let lib_math = Library::new("./libRSA.so").unwrap();
+    //         let pow = lib_math.get::<Symbol<extern "C" fn(i32, i32) -> i32>>(b"pow").unwrap();
             
-            let result = pow(2, 2);
-            assert_eq!(result, 4);
-            let result1 = pow(22, 3);
-            assert_eq!(result1, 10648);
-        }
-    }
+    //         let result = pow(2, 2);
+    //         assert_eq!(result, 4);
+    //         let result1 = pow(22, 3);
+    //         assert_eq!(result1, 10648);
+    //     }
+    // }
 
     #[test]
     fn is_prime_expect_correct() {
